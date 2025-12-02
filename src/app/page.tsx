@@ -11,9 +11,6 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  console.log("Current view mode:", viewMode);
-  console.log("Events data loaded:", eventsData.events.length, "events");
-
   const handlePrevMonth = () => {
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
@@ -69,10 +66,7 @@ export default function Home() {
                 <span className="font-medium">Cards</span>
               </button>
               <button
-                onClick={() => {
-                  console.log("Calendar button clicked");
-                  setViewMode("calendar");
-                }}
+                onClick={() => setViewMode("calendar")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
                   viewMode === "calendar"
                     ? "bg-white shadow-sm text-blue-600"
