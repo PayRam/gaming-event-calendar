@@ -83,7 +83,7 @@ const computeWeekHeight = (rowCount: number) => {
   if (rowCount <= 0) {
     return BASE_CELL_HEIGHT;
   }
-  return DAY_HEADER_HEIGHT + rowCount * EVENT_ROW_HEIGHT;
+  return DAY_HEADER_HEIGHT + rowCount * EVENT_ROW_HEIGHT + 40; // Added 40px for button space
 };
 
 const getRadiusClasses = (segment: WeekEventSegment) => {
@@ -236,7 +236,7 @@ export default function CalendarView({
       }
 
       const maxEventsPerDay = Math.max(...Array.from(dayEventCounts.values()));
-      const visibleRowCount = Math.min(maxEventsPerDay, 3);
+      const visibleRowCount = Math.min(maxEventsPerDay, 2);
 
       return {
         segments,
@@ -345,9 +345,9 @@ export default function CalendarView({
           const isWeekExpanded = expandedWeeks.has(weekIndex);
           const effectiveRowCount = isWeekExpanded
             ? layout.rowCount
-            : Math.min(layout.rowCount, 3);
+            : Math.min(layout.rowCount, 2);
           const weekHeight = computeWeekHeight(effectiveRowCount);
-          const hiddenRowCount = Math.max(layout.rowCount - 3, 0);
+          const hiddenRowCount = Math.max(layout.rowCount - 2, 0);
 
           // Find the day with the most events in this week
           const dayEventCounts = week.map((cell, dayIdx) => {
@@ -391,7 +391,7 @@ export default function CalendarView({
                       }`}
                       style={{ minHeight: `${weekHeight}px` }}
                     >
-                      <div className="p-4 flex flex-col">
+                      <div className="p-4 flex flex-col h-full">
                         <div>
                           <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
                             {cell.date.toLocaleDateString("en-US", {
@@ -408,26 +408,6 @@ export default function CalendarView({
                             {cell.date.getDate()}
                           </span>
                         </div>
-                        {hiddenRowCount > 0 &&
-                          !isWeekExpanded &&
-                          dayIdx === maxEventDay.dayIdx && (
-                            <button
-                              onClick={() => toggleWeekExpansion(weekIndex)}
-                              className="mt-auto text-xs text-blue-600 hover:text-blue-700 font-medium text-left"
-                            >
-                              +{hiddenRowCount} more
-                            </button>
-                          )}
-                        {isWeekExpanded &&
-                          hiddenRowCount > 0 &&
-                          dayIdx === maxEventDay.dayIdx && (
-                            <button
-                              onClick={() => toggleWeekExpansion(weekIndex)}
-                              className="mt-auto text-xs text-gray-600 hover:text-gray-700 font-medium text-left"
-                            >
-                              Show less
-                            </button>
-                          )}
                       </div>
                     </div>
                   );
@@ -442,7 +422,7 @@ export default function CalendarView({
                 const radiusClasses = getRadiusClasses(segment);
 
                 // Check if this event should be hidden based on week expansion
-                const shouldHide = segment.rowIndex >= 3 && !isWeekExpanded;
+                const shouldHide = segment.rowIndex >= 2 && !isWeekExpanded;
 
                 if (shouldHide) return null;
 
@@ -452,12 +432,11 @@ export default function CalendarView({
                   ((segment.endCol - segment.startCol + 1) / 7) * 100;
                 const topOffset =
                   DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
-                DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
 
                 return (
                   <div
                     key={`${segment.event.eventName}-${segment.event.startDate}-${idx}`}
-                    className="absolute"
+                    className="absolute z-10"
                     style={{
                       left: `${leftPercent}%`,
                       width: `${widthPercent}%`,
@@ -491,6 +470,48 @@ export default function CalendarView({
                   </div>
                 );
               })}
+
+              {/* Expansion button positioned after the last visible event row */}
+              {hiddenRowCount > 0 && !isWeekExpanded && (
+                <div
+                  className="absolute z-20"
+                  style={{
+                    left: `${(maxEventDay.dayIdx / 7) * 100}%`,
+                    width: `${(1 / 7) * 100}%`,
+                    top: `${DAY_HEADER_HEIGHT + 2 * EVENT_ROW_HEIGHT + 1}px`,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                  }}
+                >
+                  <button
+                    onClick={() => toggleWeekExpansion(weekIndex)}
+                    className="px-2 py-1 bg-white/95 backdrop-blur-sm rounded text-xs text-blue-600 hover:text-blue-700 hover:bg-white font-medium text-left shadow-md border border-blue-200"
+                  >
+                    +{hiddenRowCount} more
+                  </button>
+                </div>
+              )}
+              {hiddenRowCount > 0 && isWeekExpanded && (
+                <div
+                  className="absolute z-20"
+                  style={{
+                    left: `${(maxEventDay.dayIdx / 7) * 100}%`,
+                    width: `${(1 / 7) * 100}%`,
+                    top: `${
+                      DAY_HEADER_HEIGHT + layout.rowCount * EVENT_ROW_HEIGHT + 8
+                    }px`,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                  }}
+                >
+                  <button
+                    onClick={() => toggleWeekExpansion(weekIndex)}
+                    className="px-2 py-1 bg-white/95 backdrop-blur-sm rounded text-xs text-gray-600 hover:text-gray-700 hover:bg-white font-medium text-left shadow-md border border-gray-200"
+                  >
+                    Show less
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
