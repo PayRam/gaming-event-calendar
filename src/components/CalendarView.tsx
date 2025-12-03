@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
 
 import { GameEvent } from "@/types/events";
@@ -40,6 +40,8 @@ interface WeekEventSegment {
 interface WeekLayout {
   segments: WeekEventSegment[];
   rowCount: number;
+  visibleRowCount: number;
+  dayEventCounts: Map<number, number>;
 }
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
@@ -224,9 +226,23 @@ export default function CalendarView({
         }
       });
 
+      // Calculate event counts per day
+      const dayEventCounts = new Map<number, number>();
+      for (let col = 1; col <= 7; col++) {
+        const eventsInDay = segments.filter(
+          (seg) => seg.startCol <= col && seg.endCol >= col
+        );
+        dayEventCounts.set(col, eventsInDay.length);
+      }
+
+      const maxEventsPerDay = Math.max(...Array.from(dayEventCounts.values()));
+      const visibleRowCount = Math.min(maxEventsPerDay, 3);
+
       return {
         segments,
         rowCount: rows.length,
+        visibleRowCount,
+        dayEventCounts,
       };
     });
   }, [weeks, normalizedEvents, currentDate]);
@@ -234,6 +250,33 @@ export default function CalendarView({
   const weekHeights = useMemo(() => {
     return weekLayouts.map((layout) => computeWeekHeight(layout.rowCount));
   }, [weekLayouts]);
+
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+
+  const toggleDayExpansion = (dateKey: string) => {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(dateKey)) {
+        next.delete(dateKey);
+      } else {
+        next.add(dateKey);
+      }
+      return next;
+    });
+  };
+
+  const toggleWeekExpansion = (weekIndex: number) => {
+    setExpandedWeeks((prev) => {
+      const next = new Set(prev);
+      if (next.has(weekIndex)) {
+        next.delete(weekIndex);
+      } else {
+        next.add(weekIndex);
+      }
+      return next;
+    });
+  };
 
   const today = startOfDay(new Date());
 
@@ -299,7 +342,24 @@ export default function CalendarView({
       <div className="space-y-6">
         {weeks.map((week, weekIndex) => {
           const layout = weekLayouts[weekIndex];
-          const weekHeight = weekHeights[weekIndex];
+          const isWeekExpanded = expandedWeeks.has(weekIndex);
+          const effectiveRowCount = isWeekExpanded
+            ? layout.rowCount
+            : Math.min(layout.rowCount, 3);
+          const weekHeight = computeWeekHeight(effectiveRowCount);
+          const hiddenRowCount = Math.max(layout.rowCount - 3, 0);
+
+          // Find the day with the most events in this week
+          const dayEventCounts = week.map((cell, dayIdx) => {
+            const dayCol = dayIdx + 1;
+            const eventsInDay = layout.segments.filter(
+              (seg) => seg.startCol <= dayCol && seg.endCol >= dayCol
+            );
+            return { dayIdx, count: eventsInDay.length };
+          });
+          const maxEventDay = dayEventCounts.reduce((max, curr) =>
+            curr.count > max.count ? curr : max
+          );
 
           return (
             <div
@@ -309,12 +369,19 @@ export default function CalendarView({
             >
               {/* Day cells background */}
               <div className="grid grid-cols-7 gap-3">
-                {week.map((cell) => {
+                {week.map((cell, dayIdx) => {
                   const isTodayCell = isSameDay(cell.date, today);
+                  const dayCol = dayIdx + 1;
+                  const dateKey = getDateKey(cell.date);
+                  const eventsInThisDay = layout.segments.filter(
+                    (seg) => seg.startCol <= dayCol && seg.endCol >= dayCol
+                  );
+                  const isExpanded = expandedDays.has(dateKey);
+                  const hiddenCount = Math.max(eventsInThisDay.length - 3, 0);
 
                   return (
                     <div
-                      key={getDateKey(cell.date)}
+                      key={dateKey}
                       className={`rounded-xl border transition-colors ${
                         cell.isCurrentMonth
                           ? "bg-white border-gray-200"
@@ -324,21 +391,43 @@ export default function CalendarView({
                       }`}
                       style={{ minHeight: `${weekHeight}px` }}
                     >
-                      <div className="p-4">
-                        <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
-                          {cell.date.toLocaleDateString("en-US", {
-                            weekday: "short",
-                          })}
-                        </span>
-                        <span
-                          className={`text-xl font-semibold ${
-                            cell.isCurrentMonth
-                              ? "text-gray-900"
-                              : "text-gray-400"
-                          }`}
-                        >
-                          {cell.date.getDate()}
-                        </span>
+                      <div className="p-4 flex flex-col">
+                        <div>
+                          <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
+                            {cell.date.toLocaleDateString("en-US", {
+                              weekday: "short",
+                            })}
+                          </span>
+                          <span
+                            className={`text-xl font-semibold ${
+                              cell.isCurrentMonth
+                                ? "text-gray-900"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {cell.date.getDate()}
+                          </span>
+                        </div>
+                        {hiddenRowCount > 0 &&
+                          !isWeekExpanded &&
+                          dayIdx === maxEventDay.dayIdx && (
+                            <button
+                              onClick={() => toggleWeekExpansion(weekIndex)}
+                              className="mt-auto text-xs text-blue-600 hover:text-blue-700 font-medium text-left"
+                            >
+                              +{hiddenRowCount} more
+                            </button>
+                          )}
+                        {isWeekExpanded &&
+                          hiddenRowCount > 0 &&
+                          dayIdx === maxEventDay.dayIdx && (
+                            <button
+                              onClick={() => toggleWeekExpansion(weekIndex)}
+                              className="mt-auto text-xs text-gray-600 hover:text-gray-700 font-medium text-left"
+                            >
+                              Show less
+                            </button>
+                          )}
                       </div>
                     </div>
                   );
@@ -352,12 +441,18 @@ export default function CalendarView({
                 const isMultiDay = segment.totalDuration > 1;
                 const radiusClasses = getRadiusClasses(segment);
 
+                // Check if this event should be hidden based on week expansion
+                const shouldHide = segment.rowIndex >= 3 && !isWeekExpanded;
+
+                if (shouldHide) return null;
+
                 // Calculate percentage-based positioning
                 const leftPercent = ((segment.startCol - 1) / 7) * 100;
                 const widthPercent =
                   ((segment.endCol - segment.startCol + 1) / 7) * 100;
                 const topOffset =
                   DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
+                DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
 
                 return (
                   <div
