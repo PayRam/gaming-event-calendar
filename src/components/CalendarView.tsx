@@ -1,12 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { GameEvent } from "@/types/events";
-import {
-  getDaysInMonth,
-  getFirstDayOfMonth,
-  getMonthYear,
-  parseDate,
-} from "@/utils/dateUtils";
+import { getMonthYear, parseDate } from "@/utils/dateUtils";
 
 interface CalendarViewProps {
   events: GameEvent[];
@@ -15,15 +12,96 @@ interface CalendarViewProps {
   onNextMonth: () => void;
 }
 
-interface EventBar {
-  event: GameEvent;
-  startDay: number;
-  endDay: number;
-  startCol: number;
-  span: number;
-  isStart: boolean;
-  isEnd: boolean;
+interface CalendarDayCell {
+  date: Date;
+  isCurrentMonth: boolean;
 }
+
+interface NormalizedEvent {
+  event: GameEvent;
+  start: Date;
+  end: Date;
+  totalDuration: number;
+}
+
+interface WeekEventSegment {
+  event: GameEvent;
+  segmentStart: Date;
+  segmentEnd: Date;
+  startCol: number;
+  endCol: number;
+  totalDuration: number;
+  isStartOfEvent: boolean;
+  isEndOfEvent: boolean;
+  rowIndex: number;
+}
+
+interface WeekLayout {
+  segments: WeekEventSegment[];
+  rowCount: number;
+}
+
+const MS_IN_DAY = 24 * 60 * 60 * 1000;
+const DAY_HEADER_HEIGHT = 56;
+const EVENT_ROW_HEIGHT = 72;
+const BASE_CELL_HEIGHT = 120;
+
+const dayNames = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const startOfDay = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const differenceInDays = (start: Date, end: Date) =>
+  Math.round(
+    (startOfDay(end).getTime() - startOfDay(start).getTime()) / MS_IN_DAY
+  );
+
+const getDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+const computeWeekHeight = (rowCount: number) => {
+  if (rowCount <= 0) {
+    return BASE_CELL_HEIGHT;
+  }
+  return DAY_HEADER_HEIGHT + rowCount * EVENT_ROW_HEIGHT;
+};
+
+const getRadiusClasses = (segment: WeekEventSegment) => {
+  if (segment.totalDuration <= 1) {
+    return "rounded-2xl";
+  }
+
+  if (segment.isStartOfEvent && segment.isEndOfEvent) {
+    return "rounded-2xl";
+  }
+
+  if (segment.isStartOfEvent) {
+    return "rounded-l-2xl rounded-r-lg";
+  }
+
+  if (segment.isEndOfEvent) {
+    return "rounded-r-2xl rounded-l-lg";
+  }
+
+  return "rounded-none";
+};
 
 export default function CalendarView({
   events,
@@ -33,170 +111,141 @@ export default function CalendarView({
 }: CalendarViewProps) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  const daysInMonth = getDaysInMonth(year, month);
-  const firstDayOfMonth = getFirstDayOfMonth(year, month);
 
-  const dayNames = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+  const calendarDays = useMemo<CalendarDayCell[]>(() => {
+    const firstOfMonth = startOfDay(new Date(year, month, 1));
+    const weekdayOffset = (firstOfMonth.getDay() + 6) % 7;
+    const calendarStart = startOfDay(new Date(firstOfMonth));
+    calendarStart.setDate(firstOfMonth.getDate() - weekdayOffset);
 
-  // Get events for current month and organize them
-  const getEventBars = (): EventBar[] => {
-    const eventBars: EventBar[] = [];
+    const cells: CalendarDayCell[] = [];
+    for (let i = 0; i < 42; i += 1) {
+      const date = startOfDay(new Date(calendarStart));
+      date.setDate(calendarStart.getDate() + i);
+      cells.push({
+        date,
+        isCurrentMonth: date.getMonth() === month,
+      });
+    }
+    return cells;
+  }, [year, month]);
 
-    events.forEach((event) => {
-      const startDate = parseDate(event.startDate);
-      const endDate = parseDate(event.endDate);
+  const weeks = useMemo(() => {
+    const chunked: CalendarDayCell[][] = [];
+    for (let i = 0; i < calendarDays.length; i += 7) {
+      chunked.push(calendarDays.slice(i, i + 7));
+    }
+    return chunked;
+  }, [calendarDays]);
 
-      // Check if event is in current month
-      const eventStartMonth = startDate.getMonth();
-      const eventStartYear = startDate.getFullYear();
-      const eventEndMonth = endDate.getMonth();
-      const eventEndYear = endDate.getFullYear();
+  const normalizedEvents = useMemo<NormalizedEvent[]>(() => {
+    return events.map((event) => {
+      const start = startOfDay(parseDate(event.startDate));
+      const end = startOfDay(parseDate(event.endDate));
 
-      const isInMonth =
-        (eventStartYear === year && eventStartMonth === month) ||
-        (eventEndYear === year && eventEndMonth === month) ||
-        (startDate < new Date(year, month, 1) &&
-          endDate > new Date(year, month + 1, 0));
+      return {
+        event,
+        start,
+        end,
+        totalDuration: differenceInDays(start, end) + 1,
+      };
+    });
+  }, [events]);
 
-      if (!isInMonth) return;
+  const weekLayouts = useMemo<WeekLayout[]>(() => {
+    return weeks.map((week) => {
+      const weekStart = startOfDay(week[0]?.date ?? currentDate);
+      const weekEnd = startOfDay(week[6]?.date ?? currentDate);
 
-      // Calculate start and end days within the month
-      let startDay = 1;
-      let endDay = daysInMonth;
+      const segments: WeekEventSegment[] = [];
 
-      if (eventStartYear === year && eventStartMonth === month) {
-        startDay = startDate.getDate();
-      }
+      normalizedEvents.forEach(({ event, start, end, totalDuration }) => {
+        if (end < weekStart || start > weekEnd) {
+          return;
+        }
 
-      if (eventEndYear === year && eventEndMonth === month) {
-        endDay = endDate.getDate();
-      }
+        const segmentStart = start > weekStart ? start : weekStart;
+        const segmentEnd = end < weekEnd ? end : weekEnd;
 
-      // Calculate which column (day of week) the event starts
-      const startCol = new Date(year, month, startDay).getDay();
+        const startCol = differenceInDays(weekStart, segmentStart) + 1;
+        const endCol = differenceInDays(weekStart, segmentEnd) + 1;
 
-      // Check if it's a multi-day event
-      const isMultiDay = startDate.toDateString() !== endDate.toDateString();
+        segments.push({
+          event,
+          segmentStart,
+          segmentEnd,
+          startCol: Math.max(1, startCol),
+          endCol: Math.min(7, endCol),
+          totalDuration,
+          isStartOfEvent: segmentStart.getTime() === start.getTime(),
+          isEndOfEvent: segmentEnd.getTime() === end.getTime(),
+          rowIndex: 0,
+        });
+      });
 
-      if (isMultiDay) {
-        // For multi-day events, create bars that span across weeks
-        let currentDay = startDay;
-        while (currentDay <= endDay) {
-          const currentCol = new Date(year, month, currentDay).getDay();
-          const daysUntilWeekEnd = 6 - currentCol;
-          const remainingDays = endDay - currentDay;
-          const span = Math.min(daysUntilWeekEnd, remainingDays) + 1;
+      segments.sort((a, b) => {
+        if (b.totalDuration !== a.totalDuration) {
+          return b.totalDuration - a.totalDuration;
+        }
 
-          eventBars.push({
-            event,
-            startDay: currentDay,
-            endDay: Math.min(currentDay + span - 1, endDay),
-            startCol: currentCol,
-            span,
-            isStart: currentDay === startDay,
-            isEnd: currentDay + span - 1 >= endDay,
+        const startDiff = a.segmentStart.getTime() - b.segmentStart.getTime();
+        if (startDiff !== 0) {
+          return startDiff;
+        }
+
+        return a.event.eventName.localeCompare(b.event.eventName);
+      });
+
+      const rows: WeekEventSegment[][] = [];
+
+      segments.forEach((segment) => {
+        let placed = false;
+
+        for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+          const conflict = rows[rowIndex].some((existing) => {
+            return (
+              segment.startCol <= existing.endCol &&
+              segment.endCol >= existing.startCol
+            );
           });
 
-          currentDay += span;
+          if (!conflict) {
+            segment.rowIndex = rowIndex;
+            rows[rowIndex].push(segment);
+            placed = true;
+            break;
+          }
         }
-      } else {
-        // Single day event
-        eventBars.push({
-          event,
-          startDay,
-          endDay,
-          startCol,
-          span: 1,
-          isStart: true,
-          isEnd: true,
-        });
-      }
+
+        if (!placed) {
+          segment.rowIndex = rows.length;
+          rows.push([segment]);
+        }
+      });
+
+      return {
+        segments,
+        rowCount: rows.length,
+      };
     });
+  }, [weeks, normalizedEvents, currentDate]);
 
-    return eventBars;
-  };
+  const weekHeights = useMemo(() => {
+    return weekLayouts.map((layout) => computeWeekHeight(layout.rowCount));
+  }, [weekLayouts]);
 
-  const eventBars = getEventBars();
-
-  // Group events by week and day for rendering
-  const getWeeks = () => {
-    const weeks: number[][] = [];
-    let week: number[] = [];
-
-    // Add empty cells for days before month starts
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      week.push(0);
-    }
-
-    // Add all days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      week.push(day);
-      if (week.length === 7) {
-        weeks.push(week);
-        week = [];
-      }
-    }
-
-    // Add remaining empty cells
-    if (week.length > 0) {
-      while (week.length < 7) {
-        week.push(0);
-      }
-      weeks.push(week);
-    }
-
-    return weeks;
-  };
-
-  const weeks = getWeeks();
-
-  // Get events for a specific day (single-day events only for stacking)
-  const getSingleDayEvents = (day: number) => {
-    if (!day) return [];
-    return eventBars.filter(
-      (bar) => bar.startDay === day && bar.isStart && bar.isEnd
-    );
-  };
-
-  // Get multi-day event bars that span across a specific day
-  const getMultiDayEventBars = (weekIndex: number) => {
-    const weekStart = weekIndex * 7 - firstDayOfMonth + 1;
-    return eventBars.filter(
-      (bar) =>
-        !bar.isEnd ||
-        !bar.isStart ||
-        (bar.startDay >= weekStart && bar.startDay < weekStart + 7)
-    );
-  };
-
-  const isToday = (day: number) => {
-    return (
-      day &&
-      new Date().getDate() === day &&
-      new Date().getMonth() === month &&
-      new Date().getFullYear() === year
-    );
-  };
+  const today = startOfDay(new Date());
 
   return (
     <div className="p-6">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <button
           onClick={onPrevMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors"
           aria-label="Previous month"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -210,17 +259,17 @@ export default function CalendarView({
           </svg>
         </button>
 
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-3xl font-semibold text-gray-900">
           {getMonthYear(currentDate)}
         </h2>
 
         <button
           onClick={onNextMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors"
           aria-label="Next month"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -235,119 +284,131 @@ export default function CalendarView({
         </button>
       </div>
 
-      {/* Day Names */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
-        {dayNames.map((day) => (
+      <div className="grid grid-cols-7 gap-3 mb-4">
+        {dayNames.map((name) => (
           <div
-            key={day}
-            className="text-center font-semibold text-sm text-gray-700 py-2 px-1"
+            key={name}
+            className="text-xs font-semibold tracking-wide uppercase text-gray-400 text-center"
           >
-            {day.slice(0, 3)}
+            {name}
           </div>
         ))}
       </div>
 
-      {/* Calendar Grid */}
-      <div className="space-y-1">
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="relative">
-            {/* Week row with day cells */}
-            <div className="grid grid-cols-7 gap-1 relative">
-              {week.map((day, dayIndex) => {
-                const singleDayEvents = getSingleDayEvents(day);
+      <div className="space-y-6">
+        {weeks.map((week, weekIndex) => {
+          const layout = weekLayouts[weekIndex];
+          const weekHeight = weekHeights[weekIndex];
+          const eventAreaHeight = Math.max(0, weekHeight - DAY_HEADER_HEIGHT);
 
-                return (
-                  <div
-                    key={dayIndex}
-                    className={`min-h-[120px] p-2 border ${
-                      day
-                        ? "bg-white border-gray-200"
-                        : "bg-gray-50 border-gray-100"
-                    } relative`}
-                  >
-                    {day > 0 && (
-                      <>
-                        {/* Day number */}
-                        <div
-                          className={`text-sm font-semibold mb-1 ${
-                            isToday(day)
-                              ? "bg-blue-600 text-white w-7 h-7 rounded-full flex items-center justify-center"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {day}
-                        </div>
-
-                        {/* Single day events stacked */}
-                        {singleDayEvents.length > 0 && (
-                          <div className="space-y-1 mt-8">
-                            {singleDayEvents.slice(0, 2).map((bar, i) => (
-                              <div
-                                key={i}
-                                className="bg-yellow-400 text-gray-900 text-xs font-semibold px-2 py-1 rounded cursor-pointer hover:bg-yellow-500 transition-colors"
-                                title={bar.event.eventName}
-                              >
-                                <div className="truncate">
-                                  {bar.event.eventName}
-                                </div>
-                              </div>
-                            ))}
-                            {singleDayEvents.length > 2 && (
-                              <div className="text-xs text-gray-500 pl-2">
-                                +{singleDayEvents.length - 2} more
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Multi-day event bars overlaid on top */}
-            <div className="absolute top-0 left-0 right-0 pointer-events-none pt-9">
-              {getMultiDayEventBars(weekIndex)
-                .filter((bar) => {
-                  const weekStart = weekIndex * 7 - firstDayOfMonth + 1;
-                  const weekEnd = weekStart + 6;
-                  return bar.startDay >= weekStart && bar.startDay <= weekEnd;
-                })
-                .map((bar, barIndex) => {
-                  const offsetFromWeekStart = bar.startCol;
+          return (
+            <div key={weekIndex} className="relative">
+              <div className="grid grid-cols-7 gap-3">
+                {week.map((cell) => {
+                  const isTodayCell = isSameDay(cell.date, today);
 
                   return (
                     <div
-                      key={`${bar.event.eventName}-${bar.startDay}-${barIndex}`}
-                      className="absolute pointer-events-auto"
-                      style={{
-                        left: `calc(${(offsetFromWeekStart / 7) * 100}% + ${
-                          offsetFromWeekStart * 0.25
-                        }rem)`,
-                        width: `calc(${(bar.span / 7) * 100}% - ${0.25}rem)`,
-                        top: `${barIndex * 2}rem`,
-                      }}
+                      key={getDateKey(cell.date)}
+                      className={`relative rounded-3xl border transition-colors ${
+                        cell.isCurrentMonth
+                          ? "bg-white border-gray-200"
+                          : "bg-gray-50 border-gray-100 text-gray-400"
+                      } ${
+                        isTodayCell ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                      }`}
+                      style={{ minHeight: `${weekHeight}px` }}
                     >
-                      <div
-                        className={`bg-yellow-100 border-l-4 border-yellow-500 text-gray-900 text-xs font-semibold px-2 py-1 cursor-pointer hover:bg-yellow-200 transition-colors ${
-                          bar.isStart ? "rounded-l" : ""
-                        } ${bar.isEnd ? "rounded-r" : ""}`}
-                        title={bar.event.eventName}
-                      >
-                        <div className="truncate">
-                          {bar.isStart && bar.event.eventName}
-                        </div>
-                        <div className="text-[10px] text-gray-600 truncate">
-                          {bar.isStart && `📍 ${bar.event.location}`}
+                      <div className="flex h-full flex-col gap-3 p-4">
+                        <div>
+                          <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
+                            {cell.date.toLocaleDateString("en-US", {
+                              weekday: "short",
+                            })}
+                          </span>
+                          <span
+                            className={`text-xl font-semibold ${
+                              cell.isCurrentMonth
+                                ? "text-gray-900"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {cell.date.getDate()}
+                          </span>
                         </div>
                       </div>
                     </div>
                   );
                 })}
+              </div>
+
+              {layout.rowCount > 0 && (
+                <div
+                  className="pointer-events-none absolute inset-x-0"
+                  style={{
+                    top: DAY_HEADER_HEIGHT,
+                    height: eventAreaHeight,
+                    zIndex: 10,
+                  }}
+                >
+                  <div className="grid grid-cols-7 gap-3 h-full">
+                    {layout.segments.map((segment, idx) => {
+                      const eventUrl =
+                        segment.event.website || segment.event.link || "#";
+                      const isMultiDay = segment.totalDuration > 1;
+                      const radiusClasses = getRadiusClasses(segment);
+
+                      return (
+                        <div
+                          key={`${segment.event.eventName}-${segment.event.startDate}-${idx}`}
+                          className="pointer-events-auto"
+                          style={{
+                            gridColumn: `${segment.startCol} / ${
+                              segment.endCol + 1
+                            }`,
+                            marginTop: `${
+                              segment.rowIndex * EVENT_ROW_HEIGHT
+                            }px`,
+                          }}
+                        >
+                          <div
+                            className={`flex h-[60px] items-center justify-between gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md ${
+                              isMultiDay
+                                ? "bg-amber-50 border border-amber-200 text-amber-900"
+                                : "bg-white border border-gray-200 text-gray-900"
+                            } ${radiusClasses}`}
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold leading-tight">
+                                {segment.event.eventName}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <span role="img" aria-hidden="true">
+                                  📍
+                                </span>
+                                <span className="truncate">
+                                  {segment.event.location}
+                                </span>
+                              </div>
+                            </div>
+                            <a
+                              href={eventUrl}
+                              className="whitespace-nowrap text-xs font-medium text-blue-600 hover:text-blue-700"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Learn More →
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
