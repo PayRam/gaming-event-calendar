@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { MapPin } from "lucide-react";
 
 import { GameEvent } from "@/types/events";
 import { getMonthYear, parseDate } from "@/utils/dateUtils";
@@ -370,35 +371,28 @@ export default function CalendarView({
                       paddingRight: "12px",
                     }}
                   >
-                    <div
-                      className={`flex h-[60px] items-center justify-between gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md ${
+                    <a
+                      href={eventUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer ${
                         isMultiDay
                           ? "bg-amber-50 border border-amber-200 text-amber-900"
                           : "bg-white border border-gray-200 text-gray-900"
                       } ${radiusClasses}`}
                     >
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold leading-tight">
                           {segment.event.eventName}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
-                          <span role="img" aria-hidden="true">
-                            📍
-                          </span>
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">
                             {segment.event.location}
                           </span>
                         </div>
                       </div>
-                      <a
-                        href={eventUrl}
-                        className="whitespace-nowrap text-xs font-medium text-blue-600 hover:text-blue-700"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Learn More →
-                      </a>
-                    </div>
+                    </a>
                   </div>
                 );
               })}
