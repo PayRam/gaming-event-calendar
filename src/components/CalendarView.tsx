@@ -42,9 +42,9 @@ interface WeekLayout {
 }
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
-const DAY_HEADER_HEIGHT = 56;
+const DAY_HEADER_HEIGHT = 80;
 const EVENT_ROW_HEIGHT = 72;
-const BASE_CELL_HEIGHT = 120;
+const BASE_CELL_HEIGHT = 160;
 
 const dayNames = [
   "Monday",
@@ -85,19 +85,19 @@ const computeWeekHeight = (rowCount: number) => {
 
 const getRadiusClasses = (segment: WeekEventSegment) => {
   if (segment.totalDuration <= 1) {
-    return "rounded-2xl";
+    return "rounded-lg";
   }
 
   if (segment.isStartOfEvent && segment.isEndOfEvent) {
-    return "rounded-2xl";
+    return "rounded-lg";
   }
 
   if (segment.isStartOfEvent) {
-    return "rounded-l-2xl rounded-r-lg";
+    return "rounded-l-lg rounded-r-md";
   }
 
   if (segment.isEndOfEvent) {
-    return "rounded-r-2xl rounded-l-lg";
+    return "rounded-r-lg rounded-l-md";
   }
 
   return "rounded-none";
@@ -295,7 +295,7 @@ export default function CalendarView({
         ))}
       </div>
 
-      <div className="space-y-0">
+      <div className="space-y-6">
         {weeks.map((week, weekIndex) => {
           const layout = weekLayouts[weekIndex];
           const weekHeight = weekHeights[weekIndex];
@@ -314,7 +314,7 @@ export default function CalendarView({
                   return (
                     <div
                       key={getDateKey(cell.date)}
-                      className={`rounded-3xl border transition-colors ${
+                      className={`rounded-xl border transition-colors ${
                         cell.isCurrentMonth
                           ? "bg-white border-gray-200"
                           : "bg-gray-50 border-gray-100 text-gray-400"
