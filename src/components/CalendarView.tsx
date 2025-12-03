@@ -295,14 +295,18 @@ export default function CalendarView({
         ))}
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-0">
         {weeks.map((week, weekIndex) => {
           const layout = weekLayouts[weekIndex];
           const weekHeight = weekHeights[weekIndex];
-          const eventAreaHeight = Math.max(0, weekHeight - DAY_HEADER_HEIGHT);
 
           return (
-            <div key={weekIndex} className="relative">
+            <div
+              key={weekIndex}
+              className="relative"
+              style={{ minHeight: `${weekHeight}px` }}
+            >
+              {/* Day cells background */}
               <div className="grid grid-cols-7 gap-3">
                 {week.map((cell) => {
                   const isTodayCell = isSameDay(cell.date, today);
@@ -310,7 +314,7 @@ export default function CalendarView({
                   return (
                     <div
                       key={getDateKey(cell.date)}
-                      className={`relative rounded-3xl border transition-colors ${
+                      className={`rounded-3xl border transition-colors ${
                         cell.isCurrentMonth
                           ? "bg-white border-gray-200"
                           : "bg-gray-50 border-gray-100 text-gray-400"
@@ -319,93 +323,85 @@ export default function CalendarView({
                       }`}
                       style={{ minHeight: `${weekHeight}px` }}
                     >
-                      <div className="flex h-full flex-col gap-3 p-4">
-                        <div>
-                          <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
-                            {cell.date.toLocaleDateString("en-US", {
-                              weekday: "short",
-                            })}
-                          </span>
-                          <span
-                            className={`text-xl font-semibold ${
-                              cell.isCurrentMonth
-                                ? "text-gray-900"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {cell.date.getDate()}
-                          </span>
-                        </div>
+                      <div className="p-4">
+                        <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
+                          {cell.date.toLocaleDateString("en-US", {
+                            weekday: "short",
+                          })}
+                        </span>
+                        <span
+                          className={`text-xl font-semibold ${
+                            cell.isCurrentMonth
+                              ? "text-gray-900"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {cell.date.getDate()}
+                        </span>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {layout.rowCount > 0 && (
-                <div
-                  className="pointer-events-none absolute inset-x-0"
-                  style={{
-                    top: DAY_HEADER_HEIGHT,
-                    height: eventAreaHeight,
-                    zIndex: 10,
-                  }}
-                >
-                  <div className="grid grid-cols-7 gap-3 h-full">
-                    {layout.segments.map((segment, idx) => {
-                      const eventUrl =
-                        segment.event.website || segment.event.link || "#";
-                      const isMultiDay = segment.totalDuration > 1;
-                      const radiusClasses = getRadiusClasses(segment);
+              {/* Event cards positioned absolutely */}
+              {layout.segments.map((segment, idx) => {
+                const eventUrl =
+                  segment.event.website || segment.event.link || "#";
+                const isMultiDay = segment.totalDuration > 1;
+                const radiusClasses = getRadiusClasses(segment);
 
-                      return (
-                        <div
-                          key={`${segment.event.eventName}-${segment.event.startDate}-${idx}`}
-                          className="pointer-events-auto"
-                          style={{
-                            gridColumn: `${segment.startCol} / ${
-                              segment.endCol + 1
-                            }`,
-                            marginTop: `${
-                              segment.rowIndex * EVENT_ROW_HEIGHT
-                            }px`,
-                          }}
-                        >
-                          <div
-                            className={`flex h-[60px] items-center justify-between gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md ${
-                              isMultiDay
-                                ? "bg-amber-50 border border-amber-200 text-amber-900"
-                                : "bg-white border border-gray-200 text-gray-900"
-                            } ${radiusClasses}`}
-                          >
-                            <div className="min-w-0">
-                              <div className="truncate text-sm font-semibold leading-tight">
-                                {segment.event.eventName}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-600">
-                                <span role="img" aria-hidden="true">
-                                  📍
-                                </span>
-                                <span className="truncate">
-                                  {segment.event.location}
-                                </span>
-                              </div>
-                            </div>
-                            <a
-                              href={eventUrl}
-                              className="whitespace-nowrap text-xs font-medium text-blue-600 hover:text-blue-700"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Learn More →
-                            </a>
-                          </div>
+                // Calculate percentage-based positioning
+                const leftPercent = ((segment.startCol - 1) / 7) * 100;
+                const widthPercent =
+                  ((segment.endCol - segment.startCol + 1) / 7) * 100;
+                const topOffset =
+                  DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
+
+                return (
+                  <div
+                    key={`${segment.event.eventName}-${segment.event.startDate}-${idx}`}
+                    className="absolute"
+                    style={{
+                      left: `${leftPercent}%`,
+                      width: `${widthPercent}%`,
+                      top: `${topOffset}px`,
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                    }}
+                  >
+                    <div
+                      className={`flex h-[60px] items-center justify-between gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md ${
+                        isMultiDay
+                          ? "bg-amber-50 border border-amber-200 text-amber-900"
+                          : "bg-white border border-gray-200 text-gray-900"
+                      } ${radiusClasses}`}
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold leading-tight">
+                          {segment.event.eventName}
                         </div>
-                      );
-                    })}
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <span role="img" aria-hidden="true">
+                            📍
+                          </span>
+                          <span className="truncate">
+                            {segment.event.location}
+                          </span>
+                        </div>
+                      </div>
+                      <a
+                        href={eventUrl}
+                        className="whitespace-nowrap text-xs font-medium text-blue-600 hover:text-blue-700"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Learn More →
+                      </a>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })}
             </div>
           );
         })}
