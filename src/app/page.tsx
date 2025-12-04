@@ -27,22 +27,86 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                iGaming Events & Conferences
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Discover top iGaming events and conferences. Stay updated on
-                crucial dates, venues, and networking opportunities.
-              </p>
+      {/* Header Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Image
+                src="/payram_horizontalVividGreen.svg"
+                alt="B Gaming Logo"
+                width={180}
+                height={40}
+                priority
+                className="h-10 w-auto"
+              />
             </div>
 
-            {/* View Toggle */}
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center space-x-8">
+              <button className="text-gray-700 hover:text-gray-900 font-medium">
+                GAMES
+              </button>
+              <button className="text-gray-700 hover:text-gray-900 font-medium">
+                MARKETING
+              </button>
+              <button className="text-gray-700 hover:text-gray-900 font-medium">
+                PARTNERS
+              </button>
+              <button className="text-gray-700 hover:text-gray-900 font-medium">
+                BLOG
+              </button>
+              <button className="text-gray-700 hover:text-gray-900 font-medium">
+                ABOUT
+              </button>
+              <button className="p-2 text-gray-700 hover:text-gray-900">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
+              <button className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 font-medium">
+                CONTACT US
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="bg-white py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
+              iGAMING EVENTS &<br />CONFERENCES
+            </h1>
+            <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-3xl">
+              Discover top iGaming events and conferences with our iGaming
+              events calendar. Stay updated on crucial dates, venues, and
+              networking opportunities in the industry.
+            </p>
+            <button className="px-8 py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#CAFF54]/90 font-bold text-lg transition-colors">
+              SUBMIT YOUR EVENT
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* View Toggle Section */}
+      <div className="bg-gray-50 py-6 border-y border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-end">
+            <div className="flex gap-2 bg-white p-1 rounded-lg border border-gray-200">
               <button
                 onClick={() => setViewMode("card")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
@@ -94,10 +158,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto">
+      <main className="max-w-7xl mx-auto bg-gray-50">
         {viewMode === "calendar" ? (
           <CalendarView
             events={eventsData.events}
