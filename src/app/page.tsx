@@ -88,7 +88,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
-              iGAMING EVENTS &<br />CONFERENCES
+              iGAMING EVENTS &<br />
+              CONFERENCES
             </h1>
             <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-3xl">
               Discover top iGaming events and conferences with our iGaming
