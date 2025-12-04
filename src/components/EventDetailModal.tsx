@@ -1,0 +1,126 @@
+"use client";
+
+import { GameEvent } from "@/types/events";
+import { formatDateRange } from "@/utils/dateUtils";
+import { X, MapPin, Calendar } from "lucide-react";
+import Image from "next/image";
+
+interface EventDetailModalProps {
+  event: GameEvent | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function EventDetailModal({
+  event,
+  isOpen,
+  onClose,
+}: EventDetailModalProps) {
+  if (!isOpen || !event) return null;
+
+  // Format dates for Google Calendar
+  const formatDateForGoogle = (dateStr: string): string => {
+    const [day, month, year] = dateStr.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  };
+
+  const handleAddToGoogleCalendar = () => {
+    const startDate = formatDateForGoogle(event.startDate);
+    const endDate = formatDateForGoogle(event.endDate);
+
+    const googleCalendarUrl = new URL(
+      "https://calendar.google.com/calendar/render"
+    );
+    googleCalendarUrl.searchParams.append("action", "TEMPLATE");
+    googleCalendarUrl.searchParams.append("text", event.eventName);
+    googleCalendarUrl.searchParams.append("dates", `${startDate}/${endDate}`);
+    googleCalendarUrl.searchParams.append("details", event.description);
+    googleCalendarUrl.searchParams.append("location", event.location);
+
+    window.open(googleCalendarUrl.toString(), "_blank");
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl relative">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
+          aria-label="Close modal"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {/* Scrollable content */}
+        <div className="overflow-y-auto max-h-[90vh] p-8">
+          {/* Event Title */}
+          <h2 className="text-4xl font-bold text-black mb-6 pr-8">
+            {event.eventName.toUpperCase()}
+          </h2>
+
+          {/* Description */}
+          <p className="text-gray-700 leading-relaxed mb-6">
+            {event.description}
+          </p>
+
+          {/* Location */}
+          <div className="flex items-start gap-3 mb-4">
+            <MapPin className="w-5 h-5 text-[#6A0DAD] mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-black font-semibold">{event.location}</p>
+            </div>
+          </div>
+
+          {/* Date */}
+          <div className="flex items-start gap-3 mb-8">
+            <Calendar className="w-5 h-5 text-[#6A0DAD] mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-black font-semibold">
+                {formatDateRange(event.startDate, event.endDate)}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4">
+            {/* Visit Website Button */}
+            <a
+              href={event.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-[#CAFF54] text-black rounded-lg hover:bg-[#CAFF54]/90 font-bold text-base transition-colors"
+            >
+              VISIT WEBSITE
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </a>
+
+            {/* Add to Google Calendar Button */}
+            <button
+              onClick={handleAddToGoogleCalendar}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-50 font-medium text-base transition-colors"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z" />
+              </svg>
+              ADD TO GOOGLE CALENDAR
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 
 import { GameEvent } from "@/types/events";
 import { getMonthYear, parseDate } from "@/utils/dateUtils";
+import EventDetailModal from "./EventDetailModal";
 
 interface CalendarViewProps {
   events: GameEvent[];
@@ -253,6 +254,13 @@ export default function CalendarView({
 
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+  const [selectedEvent, setSelectedEvent] = useState<GameEvent | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleEventClick = (event: GameEvent) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
 
   const toggleDayExpansion = (dateKey: string) => {
     setExpandedDays((prev) => {
@@ -445,11 +453,14 @@ export default function CalendarView({
                       paddingRight: "12px",
                     }}
                   >
-                    <a
-                      href={eventUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer ${
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleEventClick(segment.event);
+                      }}
+                      className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer w-full text-left ${
                         isMultiDay
                           ? "bg-[#FF00FF] border border-[#6A0DAD] text-gray-900"
                           : "bg-[#CAFF54] border border-[#6A0DAD] text-gray-900"
@@ -466,7 +477,7 @@ export default function CalendarView({
                           </span>
                         </div>
                       </div>
-                    </a>
+                    </button>
                   </div>
                 );
               })}
@@ -516,6 +527,13 @@ export default function CalendarView({
           );
         })}
       </div>
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        event={selectedEvent}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
