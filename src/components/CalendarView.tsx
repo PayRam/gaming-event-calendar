@@ -451,15 +451,15 @@ export default function CalendarView({
                       rel="noreferrer"
                       className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer ${
                         isMultiDay
-                          ? "bg-amber-50 border border-amber-200 text-amber-900"
-                          : "bg-white border border-gray-200 text-gray-900"
+                          ? "bg-[#FF00FF] border border-[#6A0DAD] text-gray-900"
+                          : "bg-[#CAFF54] border border-[#6A0DAD] text-gray-900"
                       } ${radiusClasses}`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold leading-tight">
                           {segment.event.eventName}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2 text-xs text-black">
                           <MapPin className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">
                             {segment.event.location}
@@ -485,7 +485,7 @@ export default function CalendarView({
                 >
                   <button
                     onClick={() => toggleWeekExpansion(weekIndex)}
-                    className="px-2 py-1 bg-white/95 backdrop-blur-sm rounded text-xs text-blue-600 hover:text-blue-700 hover:bg-white font-medium text-left shadow-md border border-blue-200"
+                    className="px-2 py-1 bg-[#01E46F] backdrop-blur-sm rounded text-xs text-black hover:text-black-700 hover:bg-[#01E46F] font-medium text-left shadow-md border border-blue-200"
                   >
                     +{hiddenRowCount} more
                   </button>
@@ -506,7 +506,7 @@ export default function CalendarView({
                 >
                   <button
                     onClick={() => toggleWeekExpansion(weekIndex)}
-                    className="px-2 py-1 bg-white/95 backdrop-blur-sm rounded text-xs text-gray-600 hover:text-gray-700 hover:bg-white font-medium text-left shadow-md border border-gray-200"
+                    className="px-2 py-1 bg-[#01E46F] backdrop-blur-sm rounded text-xs text-black hover:text-black-700 hover:bg-[#01E46F] font-medium text-left shadow-md border border-gray-200"
                   >
                     Show less
                   </button>
