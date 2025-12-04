@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GameEvent } from "@/types/events";
 import { parseDate, formatDateRange } from "@/utils/dateUtils";
 import EventDetailModal from "./EventDetailModal";
+import AddToCalendarModal from "./AddToCalendarModal";
 
 interface EventCardProps {
   event: GameEvent;
@@ -11,6 +12,58 @@ interface EventCardProps {
 
 export default function EventCard({ event }: EventCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+
+  const handleOpenCalendarForm = () => {
+    setIsModalOpen(false); // Close event detail modal
+    // Delay opening calendar modal to ensure smooth transition
+    setTimeout(() => {
+      setIsCalendarModalOpen(true);
+    }, 100);
+  };
+
+  const handleCalendarFormSubmit = async (data: {
+    name: string;
+    industry: string;
+    email: string;
+  }) => {
+    try {
+      // Send calendar invite via email API
+      const response = await fetch("/api/send-calendar-invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userName: data.name,
+          userEmail: data.email,
+          userIndustry: data.industry,
+          eventName: event.eventName,
+          eventDescription: event.description,
+          eventLocation: event.location,
+          startDate: event.startDate,
+          endDate: event.endDate,
+          eventWebsite: event.website,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send calendar invite");
+      }
+
+      const result = await response.json();
+      console.log("Calendar invite sent:", result);
+
+      // Close the form modal
+      setIsCalendarModalOpen(false);
+
+      // Show success message
+      alert("Calendar invite has been sent to your email!");
+    } catch (error) {
+      console.error("Error sending calendar invite:", error);
+      alert("Failed to send calendar invite. Please try again.");
+    }
+  };
 
   const truncateDescription = (text: string, maxLength: number = 120) => {
     if (text.length <= maxLength) return text;
@@ -114,6 +167,15 @@ export default function EventCard({ event }: EventCardProps) {
         event={event}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onOpenCalendarForm={handleOpenCalendarForm}
+      />
+
+      {/* Add to Calendar Form Modal */}
+      <AddToCalendarModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        onSubmit={handleCalendarFormSubmit}
+        eventName={event.eventName}
       />
     </>
   );

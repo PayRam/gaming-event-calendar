@@ -5,21 +5,21 @@ import { GameEvent } from "@/types/events";
 import { formatDateRange } from "@/utils/dateUtils";
 import { X, MapPin, Calendar } from "lucide-react";
 import Image from "next/image";
-import AddToCalendarModal from "./AddToCalendarModal";
 
 interface EventDetailModalProps {
   event: GameEvent | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenCalendarForm: () => void;
 }
 
 export default function EventDetailModal({
   event,
   isOpen,
   onClose,
+  onOpenCalendarForm,
 }: EventDetailModalProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   if (!isOpen || !event) return null;
 
@@ -29,41 +29,6 @@ export default function EventDetailModal({
     isExpanded || !shouldShowReadMore
       ? event.description
       : event.description.slice(0, DESCRIPTION_LIMIT) + "...";
-
-  // Format dates for Google Calendar
-  const formatDateForGoogle = (dateStr: string): string => {
-    const [day, month, year] = dateStr.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  };
-
-  const handleCalendarFormSubmit = (data: {
-    name: string;
-    industry: string;
-    email: string;
-  }) => {
-    // Log user details (you can send this to an API)
-    console.log("User details:", data);
-    console.log("Event:", event.eventName);
-
-    // Close the form modal
-    setIsCalendarModalOpen(false);
-
-    // Add to Google Calendar
-    const startDate = formatDateForGoogle(event.startDate);
-    const endDate = formatDateForGoogle(event.endDate);
-
-    const googleCalendarUrl = new URL(
-      "https://calendar.google.com/calendar/render"
-    );
-    googleCalendarUrl.searchParams.append("action", "TEMPLATE");
-    googleCalendarUrl.searchParams.append("text", event.eventName);
-    googleCalendarUrl.searchParams.append("dates", `${startDate}/${endDate}`);
-    googleCalendarUrl.searchParams.append("details", event.description);
-    googleCalendarUrl.searchParams.append("location", event.location);
-
-    window.open(googleCalendarUrl.toString(), "_blank");
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -144,7 +109,7 @@ export default function EventDetailModal({
 
             {/* Add to Google Calendar Button */}
             <button
-              onClick={() => setIsCalendarModalOpen(true)}
+              onClick={onOpenCalendarForm}
               className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-50 font-medium text-base transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -155,14 +120,6 @@ export default function EventDetailModal({
           </div>
         </div>
       </div>
-
-      {/* Add to Calendar Form Modal */}
-      <AddToCalendarModal
-        isOpen={isCalendarModalOpen}
-        onClose={() => setIsCalendarModalOpen(false)}
-        onSubmit={handleCalendarFormSubmit}
-        eventName={event.eventName}
-      />
     </div>
   );
 }

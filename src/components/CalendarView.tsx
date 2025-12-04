@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import { GameEvent } from "@/types/events";
 import { getMonthYear, parseDate } from "@/utils/dateUtils";
 import EventDetailModal from "./EventDetailModal";
+import AddToCalendarModal from "./AddToCalendarModal";
 
 interface CalendarViewProps {
   events: GameEvent[];
@@ -256,10 +257,64 @@ export default function CalendarView({
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
   const [selectedEvent, setSelectedEvent] = useState<GameEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   const handleEventClick = (event: GameEvent) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
+  };
+
+  const handleOpenCalendarForm = () => {
+    setIsModalOpen(false); // Close event detail modal
+    // Delay opening calendar modal to ensure smooth transition
+    setTimeout(() => {
+      setIsCalendarModalOpen(true);
+    }, 100);
+  };
+
+  const handleCalendarFormSubmit = async (data: {
+    name: string;
+    industry: string;
+    email: string;
+  }) => {
+    if (!selectedEvent) return;
+
+    try {
+      // Send calendar invite via email API
+      const response = await fetch("/api/send-calendar-invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userName: data.name,
+          userEmail: data.email,
+          userIndustry: data.industry,
+          eventName: selectedEvent.eventName,
+          eventDescription: selectedEvent.description,
+          eventLocation: selectedEvent.location,
+          startDate: selectedEvent.startDate,
+          endDate: selectedEvent.endDate,
+          eventWebsite: selectedEvent.website,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send calendar invite");
+      }
+
+      const result = await response.json();
+      console.log("Calendar invite sent:", result);
+
+      // Close the form modal
+      setIsCalendarModalOpen(false);
+
+      // Show success message
+      alert("Calendar invite has been sent to your email!");
+    } catch (error) {
+      console.error("Error sending calendar invite:", error);
+      alert("Failed to send calendar invite. Please try again.");
+    }
   };
 
   const toggleDayExpansion = (dateKey: string) => {
@@ -533,6 +588,15 @@ export default function CalendarView({
         event={selectedEvent}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onOpenCalendarForm={handleOpenCalendarForm}
+      />
+
+      {/* Add to Calendar Form Modal */}
+      <AddToCalendarModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        onSubmit={handleCalendarFormSubmit}
+        eventName={selectedEvent?.eventName || ""}
       />
     </div>
   );
