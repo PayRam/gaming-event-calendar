@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { GameEvent } from "@/types/events";
 import { formatDateRange } from "@/utils/dateUtils";
 import { X, MapPin, Calendar } from "lucide-react";
@@ -16,7 +17,16 @@ export default function EventDetailModal({
   isOpen,
   onClose,
 }: EventDetailModalProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   if (!isOpen || !event) return null;
+
+  const DESCRIPTION_LIMIT = 300; // Character limit before "Read More"
+  const shouldShowReadMore = event.description.length > DESCRIPTION_LIMIT;
+  const displayDescription =
+    isExpanded || !shouldShowReadMore
+      ? event.description
+      : event.description.slice(0, DESCRIPTION_LIMIT) + "...";
 
   // Format dates for Google Calendar
   const formatDateForGoogle = (dateStr: string): string => {
@@ -61,9 +71,19 @@ export default function EventDetailModal({
           </h2>
 
           {/* Description */}
-          <p className="text-gray-700 leading-relaxed mb-6">
-            {event.description}
-          </p>
+          <div className="mb-6">
+            <p className="text-gray-700 leading-relaxed">
+              {displayDescription}
+            </p>
+            {shouldShowReadMore && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-[#6A0DAD] font-semibold mt-2 hover:text-[#FF00FF] transition-colors"
+              >
+                {isExpanded ? "Read Less" : "Read More"}
+              </button>
+            )}
+          </div>
 
           {/* Location */}
           <div className="flex items-start gap-3 mb-4">
