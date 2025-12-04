@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Twitter, Mail, ArrowUp } from "lucide-react";
 import CalendarView from "@/components/CalendarView";
 import CardView from "@/components/CardView";
+import SubmitEventModal from "@/components/SubmitEventModal";
 import eventsData from "@/../../public/data/events.json";
 
 type ViewMode = "calendar" | "card";
@@ -12,6 +13,7 @@ type ViewMode = "calendar" | "card";
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handlePrevMonth = () => {
     setCurrentDate(
@@ -96,7 +98,10 @@ export default function Home() {
               events calendar. Stay updated on crucial dates, venues, and
               networking opportunities in the industry.
             </p>
-            <button className="px-8 py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#01E46F]/90 font-bold text-lg transition-colors">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-8 py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#01E46F]/90 font-bold text-lg transition-colors"
+            >
               SUBMIT YOUR EVENT
             </button>
           </div>
@@ -257,6 +262,12 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Submit Event Modal */}
+      <SubmitEventModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
