@@ -332,7 +332,7 @@ export default function CalendarView({
         {dayNames.map((name) => (
           <div
             key={name}
-            className="text-xs font-semibold tracking-wide uppercase text-gray-400 text-center"
+            className="text-xs font-semibold tracking-wide uppercase text-black text-center"
           >
             {name}
           </div>
