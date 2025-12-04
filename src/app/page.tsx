@@ -75,7 +75,7 @@ export default function Home() {
                   />
                 </svg>
               </button>
-              <button className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 font-medium">
+              <button className="px-6 py-2 bg-[#01E46F] text-black rounded-md hover:bg-[#01E46F]/80 font-medium">
                 CONTACT US
               </button>
             </div>
@@ -96,7 +96,7 @@ export default function Home() {
               events calendar. Stay updated on crucial dates, venues, and
               networking opportunities in the industry.
             </p>
-            <button className="px-8 py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#CAFF54]/90 font-bold text-lg transition-colors">
+            <button className="px-8 py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#01E46F]/90 font-bold text-lg transition-colors">
               SUBMIT YOUR EVENT
             </button>
           </div>
