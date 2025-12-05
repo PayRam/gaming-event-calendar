@@ -183,6 +183,38 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-8 md:mt-20 py-8 md:py-16 bg-[#CAFF54]">
         <div className="container mx-auto px-6 md:px-12 lg:px-16">
+          {/* Newsletter Section */}
+          <div className="mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-4">
+              Subscribe to our{" "}
+              <span className="italic font-normal">Newsletter</span>
+            </h2>
+            <div className="max-w-xl">
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Enter your Email"
+                  className="w-full px-4 md:px-6 py-3 md:py-4 pr-12 md:pr-16 bg-[#CAFF54] border-2 border-black rounded-lg text-black placeholder:text-black/70 focus:outline-none focus:ring-2 focus:ring-black text-sm md:text-base"
+                />
+                <button className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-black hover:text-gray-700 transition-colors">
+                  <svg
+                    className="w-5 h-5 md:w-6 md:h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* First Row - Logo and Social Links */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-8 md:mb-12">
             {/* Logo */}
