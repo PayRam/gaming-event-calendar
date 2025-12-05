@@ -77,8 +77,11 @@ export default function Home() {
                   />
                 </svg>
               </button>
-              <button className="px-6 py-2 bg-[#01E46F] text-black rounded-md hover:bg-[#01E46F]/80 font-medium">
-                CONTACT US
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-6 py-2 bg-[#01E46F] text-black rounded-md hover:bg-[#01E46F]/80 font-medium"
+              >
+                SUBMIT YOUR EVENT
               </button>
             </div>
           </div>
@@ -185,32 +188,28 @@ export default function Home() {
         <div className="container mx-auto px-6 md:px-12 lg:px-16">
           {/* Newsletter Section */}
           <div className="mb-8 md:mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-black mb-4">
-              Subscribe to our{" "}
-              <span className="italic font-normal">Newsletter</span>
-            </h2>
-            <div className="max-w-xl">
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="Enter your Email"
-                  className="w-full px-4 md:px-6 py-3 md:py-4 pr-12 md:pr-16 bg-[#CAFF54] border-2 border-black rounded-lg text-black placeholder:text-black/70 focus:outline-none focus:ring-2 focus:ring-black text-sm md:text-base"
-                />
-                <button className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-black hover:text-gray-700 transition-colors">
-                  <svg
-                    className="w-5 h-5 md:w-6 md:h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </button>
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-8">
+              {/* Left side - Heading */}
+              <div className="flex-1">
+                <h2 className="text-3xl md:text-5xl font-bold text-black mb-6 md:mb-0">
+                  Subscribe to our{" "}
+                  <span className="italic font-normal">Newsletter</span>
+                </h2>
+              </div>
+
+              {/* Right side - Newsletter Form */}
+              <div className="flex-shrink-0 w-full md:w-auto">
+                <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg border-2 border-black md:min-w-[480px]">
+                  <iframe
+                    src="https://payram.substack.com/embed"
+                    width="480"
+                    height="320"
+                    style={{ border: "none", background: "transparent" }}
+                    frameBorder="0"
+                    scrolling="no"
+                    className="w-full max-w-full h-[280px] md:h-[320px]"
+                  ></iframe>
+                </div>
               </div>
             </div>
           </div>
