@@ -14,6 +14,50 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  const faqs = [
+    {
+      question:
+        "What are the biggest iGaming events in Asia and Europe for 2025?",
+      answer:
+        "The iGaming calendar for 2025 features major gambling conferences and sports betting conferences across Europe and Asia. They include ICE Barcelona, Europe's top gambling trade show, and SiGMA Asia, a major online gambling and casino conference. iGB Live! London focuses on affiliates and marketing, while SBC Summit Lisbon covers sports betting, payments, and branding. SiGMA Central Europe in Italy offers networking and trade opportunities, and G2E Asia @ the Philippines highlights casino technology and regional expansion. These events are essential for professionals in iGaming, sports betting, and online casinos.",
+    },
+    {
+      question:
+        "How often do major iGaming exhibitions take place in Latin America vs North America?",
+      answer:
+        "Latin America hosts multiple iGaming conferences and exhibitions yearly in Brazil, Argentina, Mexico, and Colombia, with events like SiGMA Americas and SBC Summit Latinoamérica focusing on sports betting, online gambling, and casinos. North America, including United States and Canada, features major annual events, including the Global Gaming Expo (G2E) in Las Vegas, attracting global operators from Eurasia and Africa. While Latin America sees a rising number of trade shows and seminars, North America dominates in scale, technology, and innovation.",
+    },
+    {
+      question:
+        "What are the top gaming conferences in emerging markets like Africa and South Asia?",
+      answer:
+        "In Africa and South Asia, several top gaming events in 2025 cater to the rapidly growing sports betting and online casino markets. The SBC Summit Africa is a major gambling conference focused on sports betting and online gambling trends across the African continent, including East Africa. Another key event in Africa is the Gaming Africa Summit, which covers technology, innovation, and casino developments. In South Asia, SiGMA Asia in the Philippines explores sports betting and digital transformation, bringing together key players from Eurasia, South Asia, and the broader Asian market. Meanwhile, Sri Lanka is an emerging hub for online casino and sports betting conferences, attracting industry leaders across the region.",
+    },
+    {
+      question:
+        "When is the next Global Gaming Expo and iGB Affiliate event in Barcelona and London?",
+      answer:
+        "The next Global Gaming Expo (G2E) will take place in Las Vegas, United States from October 6–9, 2025, focusing on casino, gambling, and sports betting topics. For iGB Affiliate events, the next iGB Affiliate is scheduled for January 20–21, 2026, in Barcelona, bringing together professionals in online gambling, marketing, and brand innovation.",
+    },
+    {
+      question:
+        "Which gaming trade shows should Latin American operators attend in 2025?",
+      answer:
+        "In the calendar of major exhibitions, Latin American operators should prioritize SiGMA Americas in São Paulo, Brazil, a key event for online gambling, casino technology, and regulatory insights. SBC Summit Latinoamérica in Buenos Aires, Argentina focuses on sports betting, payments, and emerging markets. For operators targeting the Caribbean and Andean regions, GAT Expo Cartagena in Colombia is essential for insights into land-based casinos, online gaming, and lotteries. CGS Santiago in Chile highlights regulatory trends and digital gaming innovation. Additionally, attending G2E Las Vegas helps Latin operators connect with global gaming leaders and explore expansion opportunities in the Americas and beyond.",
+    },
+    {
+      question:
+        "What are the most important casino and betting technology exhibitions in Dubai and Malta?",
+      answer:
+        "In Dubai, the SiGMA Eurasia Summit is the leading casino and betting technology trade show, bringing together global operators, investors, and regulators to discuss iGaming innovation, sports betting trends, and fintech solutions in the Middle East. In Malta, the SiGMA Europe Summit in Valletta is the flagship iGaming exhibition, focusing on online casinos, sports betting, blockchain gaming, and regulatory updates. It serves as a major meeting point for industry leaders from all around the world, offering insights into the latest developments in the European iGaming market.",
+    },
+  ];
+
+  const toggleFaq = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
 
   const handlePrevMonth = () => {
     setCurrentDate(
@@ -182,6 +226,56 @@ export default function Home() {
           <CardView events={eventsData.events} />
         )}
       </main>
+
+      {/* FAQ Section */}
+      <section className="bg-white py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className="border-b border-gray-200 last:border-b-0"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full flex items-center justify-between py-6 text-left hover:text-gray-600 transition-colors"
+                >
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-700 pr-8">
+                    {faq.question}
+                  </h3>
+                  <svg
+                    className={`w-6 h-6 flex-shrink-0 transition-transform duration-200 ${
+                      openFaqIndex === index ? "transform rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    openFaqIndex === index ? "max-h-96 pb-6" : "max-h-0"
+                  }`}
+                >
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="mt-8 md:mt-20 py-8 md:py-16 bg-[#CAFF54]">
