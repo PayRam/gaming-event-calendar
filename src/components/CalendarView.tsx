@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { GameEvent } from "@/types/events";
 import { getMonthYear, parseDate } from "@/utils/dateUtils";
@@ -258,6 +259,7 @@ export default function CalendarView({
   const [selectedEvent, setSelectedEvent] = useState<GameEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [selectedDayForMobile, setSelectedDayForMobile] = useState<string | null>(null);
 
   const handleEventClick = (event: GameEvent) => {
     setSelectedEvent(event);
@@ -339,6 +341,14 @@ export default function CalendarView({
     });
   };
 
+  const handleDayClick = (dateKey: string) => {
+    if (selectedDayForMobile === dateKey) {
+      setSelectedDayForMobile(null);
+    } else {
+      setSelectedDayForMobile(dateKey);
+    }
+  };
+
   const today = startOfDay(new Date());
 
   return (
@@ -389,200 +399,344 @@ export default function CalendarView({
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-3 mb-4">
-        {dayNames.map((name) => (
-          <div
-            key={name}
-            className="text-xs font-semibold tracking-wide uppercase text-black text-center"
-          >
-            {name}
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-6">
-        {weeks.map((week, weekIndex) => {
-          const layout = weekLayouts[weekIndex];
-          const isWeekExpanded = expandedWeeks.has(weekIndex);
-          const effectiveRowCount = isWeekExpanded
-            ? layout.rowCount
-            : Math.min(layout.rowCount, 2);
-          const weekHeight = computeWeekHeight(effectiveRowCount);
-          const hiddenRowCount = Math.max(layout.rowCount - 2, 0);
-
-          // Find the day with the most events in this week
-          const dayEventCounts = week.map((cell, dayIdx) => {
-            const dayCol = dayIdx + 1;
-            const eventsInDay = layout.segments.filter(
-              (seg) => seg.startCol <= dayCol && seg.endCol >= dayCol
-            );
-            return { dayIdx, count: eventsInDay.length };
-          });
-          const maxEventDay = dayEventCounts.reduce((max, curr) =>
-            curr.count > max.count ? curr : max
-          );
-
-          return (
+      {/* Desktop View - Hidden on mobile/tablet */}
+      <div className="hidden lg:block">
+        <div className="grid grid-cols-7 gap-3 mb-4">
+          {dayNames.map((name) => (
             <div
-              key={weekIndex}
-              className="relative"
-              style={{ minHeight: `${weekHeight}px` }}
+              key={name}
+              className="text-xs font-semibold tracking-wide uppercase text-black text-center"
             >
-              {/* Day cells background */}
-              <div className="grid grid-cols-7 gap-3">
-                {week.map((cell, dayIdx) => {
-                  const isTodayCell = isSameDay(cell.date, today);
-                  const dayCol = dayIdx + 1;
-                  const dateKey = getDateKey(cell.date);
-                  const eventsInThisDay = layout.segments.filter(
-                    (seg) => seg.startCol <= dayCol && seg.endCol >= dayCol
-                  );
-                  const isExpanded = expandedDays.has(dateKey);
-                  const hiddenCount = Math.max(eventsInThisDay.length - 3, 0);
+              {name}
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-6">
+          {weeks.map((week, weekIndex) => {
+            const layout = weekLayouts[weekIndex];
+            const isWeekExpanded = expandedWeeks.has(weekIndex);
+            const effectiveRowCount = isWeekExpanded
+              ? layout.rowCount
+              : Math.min(layout.rowCount, 2);
+            const weekHeight = computeWeekHeight(effectiveRowCount);
+            const hiddenRowCount = Math.max(layout.rowCount - 2, 0);
+
+            // Find the day with the most events in this week
+            const dayEventCounts = week.map((cell, dayIdx) => {
+              const dayCol = dayIdx + 1;
+              const eventsInDay = layout.segments.filter(
+                (seg) => seg.startCol <= dayCol && seg.endCol >= dayCol
+              );
+              return { dayIdx, count: eventsInDay.length };
+            });
+            const maxEventDay = dayEventCounts.reduce((max, curr) =>
+              curr.count > max.count ? curr : max
+            );
+
+            return (
+              <div
+                key={weekIndex}
+                className="relative"
+                style={{ minHeight: `${weekHeight}px` }}
+              >
+                {/* Day cells background */}
+                <div className="grid grid-cols-7 gap-3">
+                  {week.map((cell, dayIdx) => {
+                    const isTodayCell = isSameDay(cell.date, today);
+                    const dayCol = dayIdx + 1;
+                    const dateKey = getDateKey(cell.date);
+
+                    return (
+                      <div
+                        key={dateKey}
+                        className={`rounded-xl border transition-colors ${
+                          cell.isCurrentMonth
+                            ? "bg-white border-gray-200"
+                            : "bg-gray-50 border-gray-100 text-gray-400"
+                        } ${
+                          isTodayCell
+                            ? "ring-2 ring-blue-500 ring-offset-2"
+                            : ""
+                        }`}
+                        style={{ minHeight: `${weekHeight}px` }}
+                      >
+                        <div className="p-4 flex flex-col h-full">
+                          <div>
+                            <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
+                              {cell.date.toLocaleDateString("en-US", {
+                                weekday: "short",
+                              })}
+                            </span>
+                            <span
+                              className={`text-xl font-semibold ${
+                                cell.isCurrentMonth
+                                  ? "text-gray-900"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {cell.date.getDate()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Event cards positioned absolutely */}
+                {layout.segments.map((segment, idx) => {
+                  const isMultiDay = segment.totalDuration > 1;
+                  const radiusClasses = getRadiusClasses(segment);
+
+                  // Check if this event should be hidden based on week expansion
+                  const shouldHide = segment.rowIndex >= 2 && !isWeekExpanded;
+
+                  if (shouldHide) return null;
+
+                  // Calculate percentage-based positioning
+                  const leftPercent = ((segment.startCol - 1) / 7) * 100;
+                  const widthPercent =
+                    ((segment.endCol - segment.startCol + 1) / 7) * 100;
+                  const topOffset =
+                    DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
 
                   return (
                     <div
-                      key={dateKey}
-                      className={`rounded-xl border transition-colors ${
-                        cell.isCurrentMonth
-                          ? "bg-white border-gray-200"
-                          : "bg-gray-50 border-gray-100 text-gray-400"
-                      } ${
-                        isTodayCell ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                      }`}
-                      style={{ minHeight: `${weekHeight}px` }}
+                      key={`${segment.event.eventName}-${segment.event.startDate}-${idx}`}
+                      className="absolute z-10"
+                      style={{
+                        left: `${leftPercent}%`,
+                        width: `${widthPercent}%`,
+                        top: `${topOffset}px`,
+                        paddingLeft: "12px",
+                        paddingRight: "12px",
+                      }}
                     >
-                      <div className="p-4 flex flex-col h-full">
-                        <div>
-                          <span className="block text-xs font-medium uppercase tracking-wide text-gray-400">
-                            {cell.date.toLocaleDateString("en-US", {
-                              weekday: "short",
-                            })}
-                          </span>
-                          <span
-                            className={`text-xl font-semibold ${
-                              cell.isCurrentMonth
-                                ? "text-gray-900"
-                                : "text-gray-400"
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEventClick(segment.event);
+                        }}
+                        className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer w-full text-left ${
+                          isMultiDay
+                            ? "bg-[#6A0DAD] border border-[#CAFF54] text-white"
+                            : "bg-[#CAFF54] border border-[#6A0DAD] text-gray-900"
+                        } ${radiusClasses}`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold leading-tight">
+                            {segment.event.eventName}
+                          </div>
+                          <div
+                            className={`flex items-center gap-2 text-xs ${
+                              isMultiDay ? " text-white" : "text-black"
                             }`}
                           >
-                            {cell.date.getDate()}
-                          </span>
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">
+                              {segment.event.location}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     </div>
                   );
                 })}
-              </div>
 
-              {/* Event cards positioned absolutely */}
-              {layout.segments.map((segment, idx) => {
-                const eventUrl =
-                  segment.event.website || segment.event.link || "#";
-                const isMultiDay = segment.totalDuration > 1;
-                const radiusClasses = getRadiusClasses(segment);
-
-                // Check if this event should be hidden based on week expansion
-                const shouldHide = segment.rowIndex >= 2 && !isWeekExpanded;
-
-                if (shouldHide) return null;
-
-                // Calculate percentage-based positioning
-                const leftPercent = ((segment.startCol - 1) / 7) * 100;
-                const widthPercent =
-                  ((segment.endCol - segment.startCol + 1) / 7) * 100;
-                const topOffset =
-                  DAY_HEADER_HEIGHT + segment.rowIndex * EVENT_ROW_HEIGHT;
-
-                return (
+                {/* Expansion button positioned after the last visible event row */}
+                {hiddenRowCount > 0 && !isWeekExpanded && (
                   <div
-                    key={`${segment.event.eventName}-${segment.event.startDate}-${idx}`}
-                    className="absolute z-10"
+                    className="absolute z-20"
                     style={{
-                      left: `${leftPercent}%`,
-                      width: `${widthPercent}%`,
-                      top: `${topOffset}px`,
+                      left: `${(maxEventDay.dayIdx / 7) * 100}%`,
+                      width: `${(1 / 7) * 100}%`,
+                      top: `${DAY_HEADER_HEIGHT + 2 * EVENT_ROW_HEIGHT + 1}px`,
                       paddingLeft: "12px",
                       paddingRight: "12px",
                     }}
                   >
                     <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleEventClick(segment.event);
-                      }}
-                      className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer w-full text-left ${
-                        isMultiDay
-                          ? "bg-[#6A0DAD] border border-[#CAFF54] text-white"
-                          : "bg-[#CAFF54] border border-[#6A0DAD] text-gray-900"
-                      } ${radiusClasses}`}
+                      onClick={() => toggleWeekExpansion(weekIndex)}
+                      className="px-2 py-1 bg-[#01E46F] backdrop-blur-sm rounded text-xs text-black hover:text-black-700 hover:bg-[#01E46F] font-medium text-left shadow-md border border-blue-200"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold leading-tight">
-                          {segment.event.eventName}
-                        </div>
-                        <div
-                          className={`flex items-center gap-2 text-xs ${
-                            isMultiDay ? " text-white" : "text-black"
-                          }`}
-                        >
-                          <MapPin className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">
-                            {segment.event.location}
-                          </span>
-                        </div>
-                      </div>
+                      +{hiddenRowCount} more
                     </button>
                   </div>
-                );
-              })}
+                )}
+                {hiddenRowCount > 0 && isWeekExpanded && (
+                  <div
+                    className="absolute z-20"
+                    style={{
+                      left: `${(maxEventDay.dayIdx / 7) * 100}%`,
+                      width: `${(1 / 7) * 100}%`,
+                      top: `${
+                        DAY_HEADER_HEIGHT +
+                        layout.rowCount * EVENT_ROW_HEIGHT +
+                        8
+                      }px`,
+                      paddingLeft: "12px",
+                      paddingRight: "12px",
+                    }}
+                  >
+                    <button
+                      onClick={() => toggleWeekExpansion(weekIndex)}
+                      className="px-2 py-1 bg-[#01E46F] backdrop-blur-sm rounded text-xs text-black hover:text-black-700 hover:bg-[#01E46F] font-medium text-left shadow-md border border-gray-200"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-              {/* Expansion button positioned after the last visible event row */}
-              {hiddenRowCount > 0 && !isWeekExpanded && (
-                <div
-                  className="absolute z-20"
-                  style={{
-                    left: `${(maxEventDay.dayIdx / 7) * 100}%`,
-                    width: `${(1 / 7) * 100}%`,
-                    top: `${DAY_HEADER_HEIGHT + 2 * EVENT_ROW_HEIGHT + 1}px`,
-                    paddingLeft: "12px",
-                    paddingRight: "12px",
-                  }}
-                >
-                  <button
-                    onClick={() => toggleWeekExpansion(weekIndex)}
-                    className="px-2 py-1 bg-[#01E46F] backdrop-blur-sm rounded text-xs text-black hover:text-black-700 hover:bg-[#01E46F] font-medium text-left shadow-md border border-blue-200"
-                  >
-                    +{hiddenRowCount} more
-                  </button>
-                </div>
-              )}
-              {hiddenRowCount > 0 && isWeekExpanded && (
-                <div
-                  className="absolute z-20"
-                  style={{
-                    left: `${(maxEventDay.dayIdx / 7) * 100}%`,
-                    width: `${(1 / 7) * 100}%`,
-                    top: `${
-                      DAY_HEADER_HEIGHT + layout.rowCount * EVENT_ROW_HEIGHT + 8
-                    }px`,
-                    paddingLeft: "12px",
-                    paddingRight: "12px",
-                  }}
-                >
-                  <button
-                    onClick={() => toggleWeekExpansion(weekIndex)}
-                    className="px-2 py-1 bg-[#01E46F] backdrop-blur-sm rounded text-xs text-black hover:text-black-700 hover:bg-[#01E46F] font-medium text-left shadow-md border border-gray-200"
-                  >
-                    Show less
-                  </button>
-                </div>
-              )}
+      {/* Mobile/Tablet View - Visible only on screens smaller than lg */}
+      <div className="lg:hidden">
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((name) => (
+            <div
+              key={name}
+              className="text-xs font-semibold tracking-wide text-gray-600 text-center py-2"
+            >
+              {name}
             </div>
-          );
-        })}
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1">
+          {calendarDays.map((cell) => {
+            const dateKey = getDateKey(cell.date);
+            const isTodayCell = isSameDay(cell.date, today);
+            const isSelected = selectedDayForMobile === dateKey;
+
+            // Get events for this day
+            const dayEvents = normalizedEvents.filter(
+              ({ start, end }) => cell.date >= start && cell.date <= end
+            );
+
+            // Separate single and multi-day events
+            const singleDayEvents = dayEvents.filter(
+              (e) => e.totalDuration === 1
+            );
+            const multiDayEvents = dayEvents.filter((e) => e.totalDuration > 1);
+
+            // Show max 3 dots
+            const dotsToShow = Math.min(
+              3,
+              singleDayEvents.length + multiDayEvents.length
+            );
+
+            return (
+              <div key={dateKey} className="relative">
+                <button
+                  onClick={() => handleDayClick(dateKey)}
+                  className={`w-full aspect-square flex flex-col items-center justify-center rounded-lg transition-all ${
+                    cell.isCurrentMonth
+                      ? "bg-white hover:bg-gray-50"
+                      : "bg-gray-50 text-gray-400"
+                  } ${
+                    isTodayCell
+                      ? "ring-2 ring-blue-500"
+                      : "border border-gray-200"
+                  } ${isSelected ? "ring-2 ring-[#01E46F]" : ""}`}
+                >
+                  <span
+                    className={`text-sm font-semibold mb-1 ${
+                      cell.isCurrentMonth ? "text-gray-900" : "text-gray-400"
+                    }`}
+                  >
+                    {cell.date.getDate()}
+                  </span>
+                  {dayEvents.length > 0 && (
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: dotsToShow }).map((_, idx) => {
+                        // First show multi-day events, then single-day
+                        const isMultiDay = idx < multiDayEvents.length;
+                        return (
+                          <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isMultiDay ? "bg-[#6A0DAD]" : "bg-[#CAFF54]"
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </button>
+
+                {/* Expanded event cards for selected day */}
+                <AnimatePresence>
+                  {isSelected && dayEvents.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-50 w-[280px]"
+                    >
+                      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 space-y-2">
+                        {/* Show max 2 event cards */}
+                        {dayEvents.slice(0, 2).map((event) => {
+                          const isMultiDay = event.totalDuration > 1;
+                          return (
+                            <button
+                              key={`${event.event.eventName}-${event.event.startDate}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEventClick(event.event);
+                              }}
+                              className={`w-full text-left p-3 rounded-lg transition-all hover:shadow-md ${
+                                isMultiDay
+                                  ? "bg-[#6A0DAD] border border-[#CAFF54] text-white"
+                                  : "bg-[#CAFF54] border border-[#6A0DAD] text-gray-900"
+                              }`}
+                            >
+                              <div className="font-semibold text-sm mb-1 line-clamp-2">
+                                {event.event.eventName}
+                              </div>
+                              <div
+                                className={`flex items-center gap-1 text-xs ${
+                                  isMultiDay ? "text-white" : "text-black"
+                                }`}
+                              >
+                                <MapPin className="w-3 h-3 flex-shrink-0" />
+                                <span className="truncate">
+                                  {event.event.location}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+
+                        {/* Show "X more" button if there are more than 2 events */}
+                        {dayEvents.length > 2 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Open the first remaining event as an example
+                              if (dayEvents[2]) {
+                                handleEventClick(dayEvents[2].event);
+                              }
+                            }}
+                            className="w-full text-center py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          >
+                            +{dayEvents.length - 2} more
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Event Detail Modal */}
