@@ -1,4 +1,3 @@
-// app/api/events/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
 
@@ -7,6 +6,8 @@ const notion = new Client({
 });
 
 const NOTION_EVENTS_DATABASE_ID = process.env.NOTION_EVENTS_DATABASE_ID!;
+const NOTION_EVENT_SUBMISSION_DATABASE_ID =
+  process.env.NOTION_EVENT_SUBMISSION_DATABASE_ID!;
 
 interface Event {
   eventName: string;
@@ -18,6 +19,7 @@ interface Event {
   website: string;
   startDate: string;
   endDate: string;
+  email: string; // Added email field
 }
 
 interface NotionEvent {
@@ -41,9 +43,9 @@ export async function POST(request: NextRequest) {
     const event: Event = body;
 
     // Validate required fields
-    if (!event.eventName || !event.link) {
+    if (!event.eventName || !event.link || !event.email) {
       return NextResponse.json(
-        { error: "Invalid payload: eventName and link are required" },
+        { error: "Invalid payload: eventName, link, and email are required" },
         { status: 400 }
       );
     }
@@ -51,24 +53,28 @@ export async function POST(request: NextRequest) {
     // Check if event with this link already exists
     const existingEvent = await findEventByLink(event.link);
 
-    let result;
+    let eventResult;
     let action: "created" | "updated";
 
     if (existingEvent) {
       // Update existing event
-      result = await updateNotionEvent(existingEvent.id, event);
+      eventResult = await updateNotionEvent(existingEvent.id, event);
       action = "updated";
     } else {
       // Create new event
-      result = await createNotionEvent(event);
+      eventResult = await createNotionEvent(event);
       action = "created";
     }
 
+    // Create submission record
+    const submissionResult = await createEventSubmission(event);
+
     return NextResponse.json({
       success: true,
-      message: `Event ${action} successfully`,
+      message: `Event ${action} successfully and submission recorded`,
       action,
-      eventId: result.id,
+      eventId: eventResult.id,
+      submissionId: submissionResult.id,
     });
   } catch (error) {
     console.error("Error processing event:", error);
@@ -210,6 +216,25 @@ async function updateNotionEvent(pageId: string, event: Event) {
       },
       status: {
         select: { name: "under-review" },
+      },
+    },
+  });
+}
+
+async function createEventSubmission(event: Event) {
+  return notion.pages.create({
+    parent: { database_id: NOTION_EVENT_SUBMISSION_DATABASE_ID },
+    properties: {
+      eventName: {
+        title: [{ text: { content: truncateText(event.eventName, 2000) } }],
+      },
+      email: {
+        email: event.email,
+      },
+      website: {
+        rich_text: [
+          { text: { content: truncateText(event.website || "", 2000) } },
+        ],
       },
     },
   });
