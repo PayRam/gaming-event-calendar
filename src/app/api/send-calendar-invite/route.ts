@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { Client } from "@notionhq/client";
+
+const notion = new Client({
+  auth: process.env.NOTION_SECRET,
+});
+
+const NOTION_REGISTERATION_DATABASE_ID =
+  process.env.NOTION_REGISTERATION_DATABASE_ID!;
 
 export async function POST(request: NextRequest) {
   try {
@@ -229,20 +237,28 @@ END:VCALENDAR`;
 </html>
     `;
 
-    // Send email with calendar attachment
-    await transporter.sendMail({
-      from: `PayRam Gaming Events <${process.env.GMAIL_USER}>`,
-      to: userEmail,
-      subject: `Calendar Invite: ${eventName}`,
-      html: htmlContent,
-      attachments: [
-        {
-          filename: "event.ics",
-          content: icsContent,
-          contentType: "text/calendar; charset=utf-8; method=REQUEST",
-        },
-      ],
-    });
+    // Send email with calendar attachment and create registration record in parallel
+    const [emailResult, registrationResult] = await Promise.allSettled([
+      transporter.sendMail({
+        from: `PayRam Gaming Events <${process.env.GMAIL_USER}>`,
+        to: userEmail,
+        subject: `Calendar Invite: ${eventName}`,
+        html: htmlContent,
+        attachments: [
+          {
+            filename: "event.ics",
+            content: icsContent,
+            contentType: "text/calendar; charset=utf-8; method=REQUEST",
+          },
+        ],
+      }),
+      createRegistrationRecord(userName, userEmail, userIndustry),
+    ]);
+
+    // Check if email sending failed
+    if (emailResult.status === "rejected") {
+      throw new Error("Failed to send calendar invite email");
+    }
 
     // Log the user details for analytics
     console.log("Calendar invite sent to:", {
@@ -250,11 +266,16 @@ END:VCALENDAR`;
       userEmail,
       userIndustry,
       eventName,
+      registrationRecorded: registrationResult.status === "fulfilled",
     });
 
     return NextResponse.json({
       success: true,
       message: "Calendar invite sent successfully",
+      registrationId:
+        registrationResult.status === "fulfilled"
+          ? registrationResult.value.id
+          : null,
     });
   } catch (error) {
     console.error("Error sending calendar invite:", error);
@@ -263,4 +284,25 @@ END:VCALENDAR`;
       { status: 500 }
     );
   }
+}
+
+async function createRegistrationRecord(
+  name: string,
+  email: string,
+  industry: string
+) {
+  return notion.pages.create({
+    parent: { database_id: NOTION_REGISTERATION_DATABASE_ID },
+    properties: {
+      name: {
+        title: [{ text: { content: name } }],
+      },
+      email: {
+        email: email,
+      },
+      industry: {
+        rich_text: [{ text: { content: industry } }],
+      },
+    },
+  });
 }
