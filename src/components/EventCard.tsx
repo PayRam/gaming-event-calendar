@@ -55,10 +55,9 @@ export default function EventCard({ event }: EventCardProps) {
       console.log("Calendar invite sent:", result);
 
       // Close the form modal
-      setIsCalendarModalOpen(false);
+      // setIsCalendarModalOpen(false);
 
       // Show success message
-      alert("Calendar invite has been sent to your email!");
     } catch (error) {
       console.error("Error sending calendar invite:", error);
       alert("Failed to send calendar invite. Please try again.");
