@@ -153,7 +153,7 @@ export default function EventCard({ event }: EventCardProps) {
               e.stopPropagation();
               setIsModalOpen(true);
             }}
-            className="inline-block px-6 py-2.5 bg-[#FF00FF] text-black text-sm font-bold rounded-full hover:bg-[#01E46F]/90 transition-colors"
+            className="inline-block px-6 py-2.5 bg-[#01E46F] text-black text-sm font-bold rounded-full hover:bg-[#01E46F]/90 transition-colors"
           >
             View Details
           </button>

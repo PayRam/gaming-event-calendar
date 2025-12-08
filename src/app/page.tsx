@@ -84,18 +84,6 @@ export default function Home() {
       answer:
         "The next Global Gaming Expo (G2E) will take place in Las Vegas, United States from October 6–9, 2025, focusing on casino, gambling, and sports betting topics. For iGB Affiliate events, the next iGB Affiliate is scheduled for January 20–21, 2026, in Barcelona, bringing together professionals in online gambling, marketing, and brand innovation.",
     },
-    {
-      question:
-        "Which gaming trade shows should Latin American operators attend in 2025?",
-      answer:
-        "In the calendar of major exhibitions, Latin American operators should prioritize SiGMA Americas in São Paulo, Brazil, a key event for online gambling, casino technology, and regulatory insights. SBC Summit Latinoamérica in Buenos Aires, Argentina focuses on sports betting, payments, and emerging markets. For operators targeting the Caribbean and Andean regions, GAT Expo Cartagena in Colombia is essential for insights into land-based casinos, online gaming, and lotteries. CGS Santiago in Chile highlights regulatory trends and digital gaming innovation. Additionally, attending G2E Las Vegas helps Latin operators connect with global gaming leaders and explore expansion opportunities in the Americas and beyond.",
-    },
-    {
-      question:
-        "What are the most important casino and betting technology exhibitions in Dubai and Malta?",
-      answer:
-        "In Dubai, the SiGMA Eurasia Summit is the leading casino and betting technology trade show, bringing together global operators, investors, and regulators to discuss iGaming innovation, sports betting trends, and fintech solutions in the Middle East. In Malta, the SiGMA Europe Summit in Valletta is the flagship iGaming exhibition, focusing on online casinos, sports betting, blockchain gaming, and regulatory updates. It serves as a major meeting point for industry leaders from all around the world, offering insights into the latest developments in the European iGaming market.",
-    },
   ];
 
   const toggleFaq = (index: number) => {
@@ -117,13 +105,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Navigation */}
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="bg-[#CAFF54] border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 -ml-4">
               <Image
-                src="/payram_horizontalVividGreen.svg"
+                src="/payram_horizontalBrightPink.svg"
                 alt="B Gaming Logo"
                 width={180}
                 height={40}
@@ -149,24 +137,13 @@ export default function Home() {
               <button className="text-gray-700 hover:text-gray-900 font-medium">
                 ABOUT
               </button>
-              <button className="p-2 text-gray-700 hover:text-gray-900">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
+            </div>
+
+            {/* Submit Button */}
+            <div className="-mr-4">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-6 py-2 bg-[#01E46F] text-black rounded-md hover:bg-[#01E46F]/80 font-medium"
+                className="px-6 py-3 bg-[#FF00FF] text-white rounded-md hover:bg-[#01E46F]/90 hover:text-black font-bold text-lg transition-colors"
               >
                 SUBMIT YOUR EVENT
               </button>
@@ -178,12 +155,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl">
+          <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
               iGAMING EVENTS &<br />
               CONFERENCES
             </h1>
-            <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-3xl">
+            <p className="text-lg md:text-xl text-gray-700 mb-8 mx-auto max-w-3xl">
               Discover top iGaming events and conferences with our iGaming
               events calendar. Stay updated on crucial dates, venues, and
               networking opportunities in the industry.
@@ -277,52 +254,76 @@ export default function Home() {
         )}
       </main>
 
-      {/* FAQ Section */}
+      {/* FAQ & Newsletter Section */}
       <section className="bg-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className="border-b border-gray-200 last:border-b-0"
-              >
-                <button
-                  onClick={() => toggleFaq(index)}
-                  className="w-full flex items-center justify-between py-6 text-left hover:text-gray-600 transition-colors"
-                >
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-700 pr-8">
-                    {faq.question}
-                  </h3>
-                  <svg
-                    className={`w-6 h-6 flex-shrink-0 transition-transform duration-200 ${
-                      openFaqIndex === index ? "transform rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+            {/* FAQ - Left Side */}
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+                Frequently Asked Questions
+              </h2>
+              <div className="space-y-4">
+                {faqs.map((faq, index) => (
+                  <div
+                    key={index}
+                    className="border-b border-gray-200 last:border-b-0"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    openFaqIndex === index ? "max-h-96 pb-6" : "max-h-0"
-                  }`}
-                >
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </div>
+                    <button
+                      onClick={() => toggleFaq(index)}
+                      className="w-full flex items-center justify-between py-5 text-left hover:text-gray-600 transition-colors"
+                    >
+                      <h3 className="text-lg md:text-xl font-bold text-gray-700 pr-6">
+                        {faq.question}
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${
+                          openFaqIndex === index ? "transform rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${
+                        openFaqIndex === index ? "max-h-96 pb-5" : "max-h-0"
+                      }`}
+                    >
+                      <p className="text-gray-600 text-base leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Newsletter - Right Side */}
+            <div className="lg:pl-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+                Subscribe to our{" "}
+                <span className="italic font-normal">Newsletter</span>
+              </h2>
+              <div className="rounded-3xl shadow-lg border-2 border-gray-200 overflow-hidden">
+                <iframe
+                  src="https://payram.substack.com/embed"
+                  width="480"
+                  height="400"
+                  style={{ border: "none", background: "transparent" }}
+                  frameBorder="0"
+                  scrolling="no"
+                  className="w-full h-[380px] md:h-[400px]"
+                ></iframe>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -330,34 +331,6 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-8 md:mt-20 py-8 md:py-16 bg-[#CAFF54]">
         <div className="container mx-auto px-6 md:px-12 lg:px-16">
-          {/* Newsletter Section */}
-          <div className="mb-8 md:mb-12">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-8">
-              {/* Left side - Heading */}
-              <div className="flex-1">
-                <h2 className="text-3xl md:text-5xl font-bold text-black mb-6 md:mb-0">
-                  Subscribe to our{" "}
-                  <span className="italic font-normal">Newsletter</span>
-                </h2>
-              </div>
-
-              {/* Right side - Newsletter Form */}
-              <div className="flex-shrink-0 w-full md:w-auto">
-                <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg border-2 border-black md:min-w-[480px]">
-                  <iframe
-                    src="https://payram.substack.com/embed"
-                    width="480"
-                    height="320"
-                    style={{ border: "none", background: "transparent" }}
-                    frameBorder="0"
-                    scrolling="no"
-                    className="w-full max-w-full h-[280px] md:h-[320px]"
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* First Row - Logo and Social Links */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-8 md:mb-12">
             {/* Logo */}
