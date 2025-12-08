@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Twitter, Mail, ArrowUp } from "lucide-react";
 import CalendarView from "@/components/CalendarView";
@@ -10,11 +10,54 @@ import eventsData from "@/../../public/data/events.json";
 
 type ViewMode = "calendar" | "card";
 
+interface GameEvent {
+  eventName: string;
+  month: string;
+  location: string;
+  link: string;
+  unprocessedDate: string;
+  description: string;
+  website: string;
+  startDate: string;
+  endDate: string;
+}
+
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [events, setEvents] = useState<GameEvent[]>(eventsData.events);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+
+  // Fetch events from API with fallback to local JSON
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("/api/reviewed-events");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.events && Array.isArray(data.events)) {
+            setEvents(data.events);
+            console.log("Loaded events from API:", data.events.length);
+          } else {
+            console.warn("API returned invalid data, using fallback");
+            setEvents(eventsData.events);
+          }
+        } else {
+          console.warn("API request failed, using fallback events");
+          setEvents(eventsData.events);
+        }
+      } catch (error) {
+        console.error("Error fetching events, using fallback:", error);
+        setEvents(eventsData.events);
+      } finally {
+        setIsLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const faqs = [
     {
@@ -215,15 +258,22 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto bg-gray-50">
-        {viewMode === "calendar" ? (
+        {isLoadingEvents ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#01E46F] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading events...</p>
+            </div>
+          </div>
+        ) : viewMode === "calendar" ? (
           <CalendarView
-            events={eventsData.events}
+            events={events}
             currentDate={currentDate}
             onPrevMonth={handlePrevMonth}
             onNextMonth={handleNextMonth}
           />
         ) : (
-          <CardView events={eventsData.events} />
+          <CardView events={events} />
         )}
       </main>
 
