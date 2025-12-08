@@ -39,9 +39,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Format dates for calendar invite
-    const formatDateForCalendar = (dateStr: string): string => {
+    const formatDateForCalendar = (
+      dateStr: string,
+      addDay: boolean = false
+    ): string => {
       const [day, month, year] = dateStr.split("-").map(Number);
       const date = new Date(year, month - 1, day);
+
+      // Add one day to the end date to make it inclusive
+      if (addDay) {
+        date.setDate(date.getDate() + 1);
+      }
+
       return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
     };
 
@@ -57,7 +66,8 @@ export async function POST(request: NextRequest) {
     };
 
     const startDateFormatted = formatDateForCalendar(startDate);
-    const endDateFormatted = formatDateForCalendar(endDate);
+    // Add one day to end date to make it inclusive
+    const endDateFormatted = formatDateForCalendar(endDate, true);
     const startDateDisplay = formatDateForDisplay(startDate);
     const endDateDisplay = formatDateForDisplay(endDate);
 
@@ -98,6 +108,15 @@ END:VALARM
 END:VEVENT
 END:VCALENDAR`;
 
+    // Extract first name from userName
+    const firstName = userName.split(" ")[0];
+
+    // Format date range for display
+    const dateRange =
+      startDate === endDate
+        ? startDateDisplay
+        : `${startDateDisplay} - ${endDateDisplay}`;
+
     // Email HTML content
     const htmlContent = `
 <!DOCTYPE html>
@@ -111,127 +130,77 @@ END:VCALENDAR`;
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
+      background-color: #f5f5f5;
     }
-    .header {
-      background: linear-gradient(135deg, #6A0DAD 0%, #FF00FF 100%);
-      color: white;
+    .email-container {
+      background-color: white;
       padding: 30px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .content {
-      background: #f9f9f9;
-      padding: 30px;
-      border: 1px solid #ddd;
-      border-radius: 0 0 10px 10px;
+      margin: 20px 0;
     }
     .event-details {
-      background: white;
-      padding: 20px;
       margin: 20px 0;
-      border-radius: 8px;
-      border-left: 4px solid #CAFF54;
+      padding-left: 20px;
     }
-    .detail-row {
-      margin: 15px 0;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
+    .event-details li {
+      margin: 10px 0;
+      color: #333;
     }
-    .detail-label {
-      font-weight: bold;
-      color: #6A0DAD;
-      display: inline-block;
-      min-width: 100px;
-    }
-    .button {
-      display: inline-block;
-      padding: 12px 30px;
-      background-color: #CAFF54;
+    .event-details strong {
       color: #000;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-      margin: 20px 0;
+    }
+    .signature {
+      margin-top: 30px;
+      color: #333;
     }
     .footer {
-      text-align: center;
       margin-top: 30px;
       padding-top: 20px;
       border-top: 1px solid #ddd;
       color: #666;
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .footer a {
+      color: #6A0DAD;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>🎮 Gaming Event Calendar Invite</h1>
-    <p>From PayRam</p>
-  </div>
-  
-  <div class="content">
-    <p>Hi ${userName},</p>
-    
-    <p>Thank you for your interest in <strong>${eventName}</strong>! We're excited to share this event with you.</p>
-    
-    <div class="event-details">
-      <h2 style="color: #6A0DAD; margin-top: 0;">${eventName}</h2>
+  <div class="email-container">
+    <div class="content">
+      <p>Hi ${firstName},</p>
       
-      <div class="detail-row">
-        <span class="detail-label">📍 Location:</span>
-        <span>${eventLocation}</span>
-      </div>
+      <p>Thank you for your interest in <strong>${eventName}</strong>.</p>
       
-      <div class="detail-row">
-        <span class="detail-label">📅 Start Date:</span>
-        <span>${startDateDisplay}</span>
-      </div>
+      <p>Here are event details:</p>
       
-      <div class="detail-row">
-        <span class="detail-label">📅 End Date:</span>
-        <span>${endDateDisplay}</span>
-      </div>
+      <ul class="event-details">
+        <li><strong>Date:</strong> ${dateRange}</li>
+        <li><strong>Location:</strong> ${eventLocation}</li>
+        ${
+          eventWebsite
+            ? `<li><strong>Website & tickets info:</strong> <a href="${eventWebsite}" style="color: #6A0DAD;">${eventWebsite}</a></li>`
+            : ""
+        }
+      </ul>
       
-      ${
-        eventWebsite
-          ? `
-      <div class="detail-row">
-        <span class="detail-label">🌐 Website:</span>
-        <a href="${eventWebsite}" style="color: #FF00FF;">${eventWebsite}</a>
-      </div>
-      `
-          : ""
-      }
-      
-      <div class="detail-row" style="border-bottom: none;">
-        <span class="detail-label">📝 Description:</span>
-        <p style="margin: 10px 0 0 0; color: #666;">${eventDescription.substring(
-          0,
-          300
-        )}${eventDescription.length > 300 ? "..." : ""}</p>
+      <div class="signature">
+        <p>Regards,<br>
+        <strong>Krishna Teja</strong></p>
       </div>
     </div>
     
-    <p><strong>The calendar invite is attached to this email.</strong> Simply open the attachment to add this event to your calendar.</p>
-    
-    ${
-      eventWebsite
-        ? `
-    <center>
-      <a href="${eventWebsite}" class="button">VISIT EVENT WEBSITE</a>
-    </center>
-    `
-        : ""
-    }
-    
-    <p style="margin-top: 30px;">Looking forward to seeing you at the event!</p>
-    
-    <p>Best regards,<br><strong>The PayRam Team</strong></p>
-  </div>
-  
-  <div class="footer">
-    <p>This email was sent because you requested a calendar invite for ${eventName}</p>
-    <p>Industry: ${userIndustry}</p>
+    <div class="footer">
+      <p>This email is sent via the <strong>iGaming Events Calendar</strong>, supported by <strong>PayRam</strong>, a self-hosted stablecoin payment gateway for borderless onchain payments. Learn more at <a href="https://payram.com" target="_blank">https://payram.com</a>.</p>
+    </div>
   </div>
 </body>
 </html>
