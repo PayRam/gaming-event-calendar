@@ -259,7 +259,9 @@ export default function CalendarView({
   const [selectedEvent, setSelectedEvent] = useState<GameEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-  const [selectedDayForMobile, setSelectedDayForMobile] = useState<string | null>(null);
+  const [selectedDayForMobile, setSelectedDayForMobile] = useState<
+    string | null
+  >(null);
 
   const handleEventClick = (event: GameEvent) => {
     setSelectedEvent(event);
@@ -608,81 +610,114 @@ export default function CalendarView({
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1">
-          {calendarDays.map((cell) => {
-            const dateKey = getDateKey(cell.date);
-            const isTodayCell = isSameDay(cell.date, today);
-            const isSelected = selectedDayForMobile === dateKey;
-
-            // Get events for this day
-            const dayEvents = normalizedEvents.filter(
-              ({ start, end }) => cell.date >= start && cell.date <= end
+        <div className="space-y-3">
+          {weeks.map((week, weekIndex) => {
+            // Find if any day in this week is selected
+            const selectedDayInWeek = week.find(
+              (cell) => getDateKey(cell.date) === selectedDayForMobile
             );
+            const selectedDateKey = selectedDayInWeek
+              ? getDateKey(selectedDayInWeek.date)
+              : null;
 
-            // Separate single and multi-day events
-            const singleDayEvents = dayEvents.filter(
-              (e) => e.totalDuration === 1
-            );
-            const multiDayEvents = dayEvents.filter((e) => e.totalDuration > 1);
-
-            // Show max 3 dots
-            const dotsToShow = Math.min(
-              3,
-              singleDayEvents.length + multiDayEvents.length
-            );
+            // Get events for the selected day
+            const selectedDayEvents = selectedDayInWeek
+              ? normalizedEvents.filter(
+                  ({ start, end }) =>
+                    selectedDayInWeek.date >= start &&
+                    selectedDayInWeek.date <= end
+                )
+              : [];
 
             return (
-              <div key={dateKey} className="relative">
-                <button
-                  onClick={() => handleDayClick(dateKey)}
-                  className={`w-full aspect-square flex flex-col items-center justify-center rounded-lg transition-all ${
-                    cell.isCurrentMonth
-                      ? "bg-white hover:bg-gray-50"
-                      : "bg-gray-50 text-gray-400"
-                  } ${
-                    isTodayCell
-                      ? "ring-2 ring-blue-500"
-                      : "border border-gray-200"
-                  } ${isSelected ? "ring-2 ring-[#01E46F]" : ""}`}
-                >
-                  <span
-                    className={`text-sm font-semibold mb-1 ${
-                      cell.isCurrentMonth ? "text-gray-900" : "text-gray-400"
-                    }`}
-                  >
-                    {cell.date.getDate()}
-                  </span>
-                  {dayEvents.length > 0 && (
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: dotsToShow }).map((_, idx) => {
-                        // First show multi-day events, then single-day
-                        const isMultiDay = idx < multiDayEvents.length;
-                        return (
-                          <div
-                            key={idx}
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isMultiDay ? "bg-[#6A0DAD]" : "bg-[#CAFF54]"
-                            }`}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </button>
+              <div key={weekIndex}>
+                {/* Week row with day cells */}
+                <div className="grid grid-cols-7 gap-1">
+                  {week.map((cell) => {
+                    const dateKey = getDateKey(cell.date);
+                    const isTodayCell = isSameDay(cell.date, today);
+                    const isSelected = selectedDayForMobile === dateKey;
 
-                {/* Expanded event cards for selected day */}
+                    // Get events for this day
+                    const dayEvents = normalizedEvents.filter(
+                      ({ start, end }) => cell.date >= start && cell.date <= end
+                    );
+
+                    // Separate single and multi-day events
+                    const singleDayEvents = dayEvents.filter(
+                      (e) => e.totalDuration === 1
+                    );
+                    const multiDayEvents = dayEvents.filter(
+                      (e) => e.totalDuration > 1
+                    );
+
+                    // Show max 3 dots
+                    const dotsToShow = Math.min(
+                      3,
+                      singleDayEvents.length + multiDayEvents.length
+                    );
+
+                    return (
+                      <button
+                        key={dateKey}
+                        onClick={() => handleDayClick(dateKey)}
+                        className={`w-full aspect-square flex flex-col items-center justify-center rounded-lg transition-all ${
+                          cell.isCurrentMonth
+                            ? "bg-white hover:bg-gray-50"
+                            : "bg-gray-50 text-gray-400"
+                        } ${
+                          isTodayCell
+                            ? "ring-2 ring-blue-500"
+                            : "border border-gray-200"
+                        } ${isSelected ? "ring-2 ring-[#01E46F]" : ""}`}
+                      >
+                        <span
+                          className={`text-sm font-semibold mb-1 ${
+                            cell.isCurrentMonth
+                              ? "text-gray-900"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {cell.date.getDate()}
+                        </span>
+                        {dayEvents.length > 0 && (
+                          <div className="flex gap-0.5">
+                            {Array.from({ length: dotsToShow }).map(
+                              (_, idx) => {
+                                // First show multi-day events, then single-day
+                                const isMultiDay = idx < multiDayEvents.length;
+                                return (
+                                  <div
+                                    key={idx}
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      isMultiDay
+                                        ? "bg-[#6A0DAD]"
+                                        : "bg-[#CAFF54]"
+                                    }`}
+                                  />
+                                );
+                              }
+                            )}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Event cards below the week row */}
                 <AnimatePresence>
-                  {isSelected && dayEvents.length > 0 && (
+                  {selectedDateKey && selectedDayEvents.length > 0 && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-50 w-[280px]"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden mt-3"
                     >
-                      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 space-y-2">
+                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2">
                         {/* Show max 2 event cards */}
-                        {dayEvents.slice(0, 2).map((event) => {
+                        {selectedDayEvents.slice(0, 2).map((event) => {
                           const isMultiDay = event.totalDuration > 1;
                           return (
                             <button
@@ -715,18 +750,18 @@ export default function CalendarView({
                         })}
 
                         {/* Show "X more" button if there are more than 2 events */}
-                        {dayEvents.length > 2 && (
+                        {selectedDayEvents.length > 2 && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               // Open the first remaining event as an example
-                              if (dayEvents[2]) {
-                                handleEventClick(dayEvents[2].event);
+                              if (selectedDayEvents[2]) {
+                                handleEventClick(selectedDayEvents[2].event);
                               }
                             }}
                             className="w-full text-center py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                           >
-                            +{dayEvents.length - 2} more
+                            +{selectedDayEvents.length - 2} more
                           </button>
                         )}
                       </div>
