@@ -515,7 +515,7 @@ export default function CalendarView({
                       }}
                       className={`flex h-[60px] items-center gap-3 px-4 py-3 shadow-sm transition-all hover:shadow-md cursor-pointer w-full text-left ${
                         isMultiDay
-                          ? "bg-[#FF00FF] border border-[#6A0DAD] text-gray-900"
+                          ? "bg-[#6A0DAD] border border-[#CAFF54] text-white"
                           : "bg-[#CAFF54] border border-[#6A0DAD] text-gray-900"
                       } ${radiusClasses}`}
                     >
@@ -523,7 +523,11 @@ export default function CalendarView({
                         <div className="truncate text-sm font-semibold leading-tight">
                           {segment.event.eventName}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-black">
+                        <div
+                          className={`flex items-center gap-2 text-xs ${
+                            isMultiDay ? " text-white" : "text-black"
+                          }`}
+                        >
                           <MapPin className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">
                             {segment.event.location}

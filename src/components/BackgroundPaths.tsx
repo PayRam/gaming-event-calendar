@@ -23,7 +23,7 @@ function FloatingPaths({ position }: { position: number }) {
           <motion.path
             key={path.id}
             d={path.d}
-            stroke="#CAFF54"
+            stroke="#2F4508"
             strokeWidth={path.width}
             strokeOpacity={0.1 + path.id * 0.03}
             initial={{ pathLength: 0.3, opacity: 0.6 }}
@@ -46,11 +46,9 @@ function FloatingPaths({ position }: { position: number }) {
 
 export default function BackgroundPaths() {
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white">
-      <div className="absolute inset-0">
-        <FloatingPaths position={1} />
-        <FloatingPaths position={-1} />
-      </div>
-    </div>
+    <>
+      <FloatingPaths position={1} />
+      <FloatingPaths position={-1} />
+    </>
   );
 }
