@@ -173,7 +173,7 @@ export default function AddToCalendarModal({
                   Added to Calendar!
                 </h3>
                 <p className="text-gray-600">
-                  You'll receive the calendar invite shortly.
+                  You&apos;ll receive the calendar invite shortly.
                 </p>
               </div>
             </div>

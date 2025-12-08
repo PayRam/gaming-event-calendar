@@ -348,7 +348,8 @@ export default function SubmitEventModal({
                   Event Submitted Successfully!
                 </h3>
                 <p className="text-gray-600">
-                  We'll review your submission and add it to the calendar soon.
+                  We&apos;ll review your submission and add it to the calendar
+                  soon.
                 </p>
               </div>
             </div>
@@ -588,9 +589,9 @@ export default function SubmitEventModal({
                     industry gatherings! Have an event to share?
                   </h2>
                   <p className="text-gray-700 leading-relaxed">
-                    Submit it here to ensure it's featured among the top iGaming
-                    happenings. Let's unite the gaming community and make your
-                    event a part of our dynamic calendar.
+                    Submit it here to ensure it&apos;s featured among the top
+                    iGaming happenings. Let&apos;s unite the gaming community
+                    and make your event a part of our dynamic calendar.
                   </p>
                 </div>
               </div>
