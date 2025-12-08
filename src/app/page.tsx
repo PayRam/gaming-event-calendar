@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Twitter, Mail, ArrowUp } from "lucide-react";
+import { Twitter, Mail, ArrowUp, Menu, X } from "lucide-react";
 import CalendarView from "@/components/CalendarView";
 import CardView from "@/components/CardView";
 import SubmitEventModal from "@/components/SubmitEventModal";
@@ -28,6 +28,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [events, setEvents] = useState<GameEvent[]>(eventsData.events);
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);
 
@@ -121,8 +122,8 @@ export default function Home() {
               />
             </div>
 
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-8">
               <button className="text-gray-700 hover:text-gray-900 font-medium">
                 GAMES
               </button>
@@ -140,8 +141,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Submit Button */}
-            <div className="-mr-4">
+            {/* Desktop Submit Button */}
+            <div className="hidden lg:block -mr-4">
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="px-6 py-3 bg-[#FF00FF] text-white rounded-md hover:bg-[#01E46F]/90 hover:text-black font-bold text-lg transition-colors"
@@ -149,30 +150,77 @@ export default function Home() {
                 SUBMIT YOUR EVENT
               </button>
             </div>
+
+            {/* Mobile menu button */}
+            <div className="lg:hidden -mr-2">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-[#01E46F]/20 transition-colors"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-[#01E46F]/20 transition-colors">
+                GAMES
+              </button>
+              <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-[#01E46F]/20 transition-colors">
+                MARKETING
+              </button>
+              <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-[#01E46F]/20 transition-colors">
+                PARTNERS
+              </button>
+              <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-[#01E46F]/20 transition-colors">
+                BLOG
+              </button>
+              <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-[#01E46F]/20 transition-colors">
+                ABOUT
+              </button>
+              <button
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 mt-2 bg-[#FF00FF] text-white rounded-md hover:bg-[#01E46F] hover:text-black font-bold transition-colors"
+              >
+                SUBMIT YOUR EVENT
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-white py-16 md:py-24 overflow-hidden">
+      <section className="relative bg-white py-12 md:py-16 lg:py-24 overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <BackgroundPaths />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-4 md:mb-6">
               iGAMING EVENTS &<br />
               CONFERENCES
             </h1>
-            <p className="text-lg md:text-xl text-gray-700 mb-8 mx-auto max-w-3xl">
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 mb-6 md:mb-8 mx-auto max-w-3xl px-4">
               Discover top iGaming events and conferences with our iGaming
               events calendar. Stay updated on crucial dates, venues, and
               networking opportunities in the industry.
             </p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-8 py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#01E46F]/90 font-bold text-lg transition-colors"
+              className="px-6 md:px-8 py-3 md:py-4 bg-[#CAFF54] text-black rounded-md hover:bg-[#01E46F]/90 font-bold text-base md:text-lg transition-colors w-full sm:w-auto"
             >
               SUBMIT YOUR EVENT
             </button>
@@ -181,13 +229,13 @@ export default function Home() {
       </section>
 
       {/* View Toggle Section */}
-      <div className="bg-gray-50 py-6 border-y border-gray-200">
+      <div className="bg-gray-50 py-4 md:py-6 border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-end">
-            <div className="flex gap-2 bg-white p-1 rounded-lg border border-gray-200">
+          <div className="flex justify-center md:justify-end">
+            <div className="flex gap-1 md:gap-2 bg-white p-1 rounded-lg border border-gray-200 w-full md:w-auto">
               <button
                 onClick={() => setViewMode("card")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                className={`flex items-center justify-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-md transition-colors flex-1 md:flex-initial ${
                   viewMode === "card"
                     ? "bg-[#01E46F] shadow-sm text-black"
                     : "text-gray-600 hover:text-gray-900"
@@ -195,7 +243,7 @@ export default function Home() {
                 aria-label="Card view"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 md:w-5 md:h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -207,11 +255,11 @@ export default function Home() {
                     d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
                   />
                 </svg>
-                <span className="font-medium">Cards</span>
+                <span className="font-medium text-sm md:text-base">Cards</span>
               </button>
               <button
                 onClick={() => setViewMode("calendar")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                className={`flex items-center justify-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-md transition-colors flex-1 md:flex-initial ${
                   viewMode === "calendar"
                     ? "bg-[#01E46F] shadow-sm text-black"
                     : "text-gray-600 hover:text-gray-900"
@@ -219,7 +267,7 @@ export default function Home() {
                 aria-label="Calendar view"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 md:w-5 md:h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -231,7 +279,9 @@ export default function Home() {
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="font-medium">Calendar</span>
+                <span className="font-medium text-sm md:text-base">
+                  Calendar
+                </span>
               </button>
             </div>
           </div>
@@ -239,12 +289,14 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto bg-gray-50">
+      <main className="max-w-7xl mx-auto bg-gray-50 px-4 sm:px-6 lg:px-8">
         {isLoadingEvents ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-12 md:py-20">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#01E46F] mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading events...</p>
+              <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-b-2 border-[#01E46F] mx-auto mb-4"></div>
+              <p className="text-gray-600 text-sm md:text-base">
+                Loading events...
+              </p>
             </div>
           </div>
         ) : viewMode === "calendar" ? (
@@ -260,12 +312,12 @@ export default function Home() {
       </main>
 
       {/* FAQ & Newsletter Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-white py-12 md:py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
             {/* FAQ - Left Side */}
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 md:mb-8">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
@@ -313,11 +365,11 @@ export default function Home() {
 
             {/* Newsletter - Right Side */}
             <div className="lg:pl-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 md:mb-8">
                 Subscribe to our{" "}
                 <span className="italic font-normal">Newsletter</span>
               </h2>
-              <div className="rounded-3xl shadow-lg border-2 border-gray-200 overflow-hidden">
+              <div className="rounded-2xl md:rounded-3xl shadow-lg border-2 border-gray-200 overflow-hidden">
                 <iframe
                   src="https://payram.substack.com/embed"
                   width="480"
@@ -325,7 +377,7 @@ export default function Home() {
                   style={{ border: "none", background: "transparent" }}
                   frameBorder="0"
                   scrolling="no"
-                  className="w-full h-[380px] md:h-[400px]"
+                  className="w-full h-[320px] sm:h-[360px] md:h-[400px]"
                 ></iframe>
               </div>
             </div>
@@ -334,10 +386,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="mt-8 md:mt-20 py-8 md:py-16 bg-[#CAFF54]">
-        <div className="container mx-auto px-6 md:px-12 lg:px-16">
+      <footer className="mt-6 md:mt-1 lg:mt-2 py-6 md:py-8 lg:py-16 bg-[#CAFF54]">
+        <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-16">
           {/* First Row - Logo and Social Links */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-8 md:mb-12">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-8 mb-6 md:mb-8 lg:mb-12">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Image
@@ -346,52 +398,52 @@ export default function Home() {
                 width={400}
                 height={88}
                 priority
-                className="w-64 md:w-[400px] h-auto"
+                className="w-48 sm:w-64 md:w-80 lg:w-[400px] h-auto"
               />
             </div>
 
             {/* Social Links and Back to Top */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
               <a
                 href="https://www.linkedin.com/company/payram"
-                className="flex items-center gap-2 text-gray-900 hover:text-black transition-colors text-sm md:text-base"
+                className="flex items-center gap-1 sm:gap-2 text-gray-900 hover:text-black transition-colors text-xs sm:text-sm md:text-base"
               >
                 <svg
-                  className="w-4 h-4 md:w-5 md:h-5"
+                  className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
-                <span>LinkedIn</span>
+                <span className="hidden sm:inline">LinkedIn</span>
               </a>
               <a
                 href="https://payram.short.gy/payram-faucet-x"
-                className="flex items-center gap-2 text-gray-900 hover:text-black transition-colors text-sm md:text-base"
+                className="flex items-center gap-1 sm:gap-2 text-gray-900 hover:text-black transition-colors text-xs sm:text-sm md:text-base"
               >
-                <Twitter className="w-4 h-4 md:w-5 md:h-5" />
-                <span>Twitter</span>
+                <Twitter className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">Twitter</span>
               </a>
               <a
                 href="mailto:dev@payram.com"
-                className="flex items-center gap-2 text-gray-900 hover:text-black transition-colors text-sm md:text-base"
+                className="flex items-center gap-1 sm:gap-2 text-gray-900 hover:text-black transition-colors text-xs sm:text-sm md:text-base"
               >
-                <Mail className="w-4 h-4 md:w-5 md:h-5" />
-                <span>Email</span>
+                <Mail className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">Email</span>
               </a>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="ml-2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-black hover:bg-gray-900 transition-colors flex items-center justify-center text-[#CAFF54]"
+                className="ml-1 sm:ml-2 w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full bg-black hover:bg-gray-900 transition-colors flex items-center justify-center text-[#CAFF54]"
               >
-                <ArrowUp className="w-5 h-5 md:w-6 md:h-6" />
+                <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </button>
             </div>
           </div>
 
           {/* Second Row - Copyright */}
-          <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-900">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-900">
             <span className="whitespace-nowrap">© 2025 — Copyright</span>
-            <span className="hidden md:inline">|</span>
+            <span className="hidden sm:inline">|</span>
             <div className="flex flex-wrap gap-2 md:gap-4">
               <a
                 href="https://payram.com/privacy-policy"
