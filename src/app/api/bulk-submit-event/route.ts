@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Add status property to all payload events
     const payloadEvents: PayloadEvent[] = events.map((event) => ({
       ...event,
-      status: "under-review",
+      status: "reviewed",
     }));
 
     // Fetch all existing events from Notion database (single API call)
