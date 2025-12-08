@@ -262,6 +262,9 @@ export default function CalendarView({
   const [selectedDayForMobile, setSelectedDayForMobile] = useState<
     string | null
   >(null);
+  const [expandedMobileDays, setExpandedMobileDays] = useState<Set<string>>(
+    new Set()
+  );
 
   const handleEventClick = (event: GameEvent) => {
     setSelectedEvent(event);
@@ -716,8 +719,11 @@ export default function CalendarView({
                       className="overflow-hidden mt-3"
                     >
                       <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2">
-                        {/* Show max 2 event cards */}
-                        {selectedDayEvents.slice(0, 2).map((event) => {
+                        {/* Show first 2 events or all if expanded */}
+                        {(expandedMobileDays.has(selectedDateKey)
+                          ? selectedDayEvents
+                          : selectedDayEvents.slice(0, 2)
+                        ).map((event) => {
                           const isMultiDay = event.totalDuration > 1;
                           return (
                             <button
@@ -749,19 +755,26 @@ export default function CalendarView({
                           );
                         })}
 
-                        {/* Show "X more" button if there are more than 2 events */}
+                        {/* Show "X more" or "Show less" button */}
                         {selectedDayEvents.length > 2 && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Open the first remaining event as an example
-                              if (selectedDayEvents[2]) {
-                                handleEventClick(selectedDayEvents[2].event);
-                              }
+                              setExpandedMobileDays((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(selectedDateKey)) {
+                                  next.delete(selectedDateKey);
+                                } else {
+                                  next.add(selectedDateKey);
+                                }
+                                return next;
+                              });
                             }}
                             className="w-full text-center py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                           >
-                            +{selectedDayEvents.length - 2} more
+                            {expandedMobileDays.has(selectedDateKey)
+                              ? "Show less"
+                              : `+${selectedDayEvents.length - 2} more`}
                           </button>
                         )}
                       </div>
