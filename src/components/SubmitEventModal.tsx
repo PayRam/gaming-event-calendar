@@ -13,6 +13,15 @@ export default function SubmitEventModal({
   isOpen,
   onClose,
 }: SubmitEventModalProps) {
+  const truncateText = (text: string, maxLength = 2000): string => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    const trimmed = text.slice(0, maxLength);
+    // avoid cutting mid-word: backtrack to last space if possible
+    const lastSpace = trimmed.lastIndexOf(" ");
+    const safe = lastSpace > 0 ? trimmed.slice(0, lastSpace) : trimmed;
+    return `${safe}…`;
+  };
   const [formData, setFormData] = useState({
     eventName: "",
     email: "",
@@ -195,7 +204,7 @@ export default function SubmitEventModal({
     return `/${cleanName}${timestamp}`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate all fields
@@ -210,14 +219,28 @@ export default function SubmitEventModal({
       location: formData.location.trim(),
       startDate: formData.startDate,
       endDate: formData.endDate,
-      description: formData.description.trim(),
+      description: truncateText(formData.description.trim(), 2000),
       website: formData.website.trim(),
       month: getMonthFromDate(formData.startDate),
       link: generateLink(formData.eventName),
+      unprocessedDate: formData.startDate, // optional: mirror startDate
     };
 
-    // Handle form submission
-    console.log("Form submitted:", submissionData);
+    // Send to backend API
+    try {
+      const res = await fetch("/api/submit-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // API expects a single event object (not array)
+        body: JSON.stringify(submissionData),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error("Submit event failed:", err);
+      }
+    } catch (err) {
+      console.error("Network error submitting event:", err);
+    }
 
     // Reset form and close modal
     setFormData({
