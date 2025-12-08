@@ -55,7 +55,6 @@ export default function EventCard({ event }: EventCardProps) {
       console.log("Calendar invite sent:", result);
 
       // Close the form modal
-      // setIsCalendarModalOpen(false);
 
       // Show success message
     } catch (error) {
