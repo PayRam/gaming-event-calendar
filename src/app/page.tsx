@@ -7,6 +7,7 @@ import CalendarView from "@/components/CalendarView";
 import CardView from "@/components/CardView";
 import SubmitEventModal from "@/components/SubmitEventModal";
 import eventsData from "@/../../public/data/events.json";
+import BackgroundPaths from "@/components/BackgroundPaths";
 
 type ViewMode = "calendar" | "card";
 
@@ -153,8 +154,12 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-white py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 opacity-30">
+          <BackgroundPaths />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
               iGAMING EVENTS &<br />
