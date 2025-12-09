@@ -9,8 +9,10 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "PayRam Gaming Event Calendar",
-  description: "Track upcoming gaming events and tournaments",
+  title:
+    "iGaming Events Calendar | Global Gambling & Online Gaming Conferences 2026",
+  description:
+    "Browse the latest iGaming events, gambling seminars, casino gaming conferences, and industry meetups worldwide. Get dates, locations, and event details in a single easy-to-use calendar.",
   icons: {
     icon: "/favicon.ico",
   },
