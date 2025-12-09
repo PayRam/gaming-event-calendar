@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Gaming Event Calendar",
+  title: "PayRam Gaming Event Calendar",
   description: "Track upcoming gaming events and tournaments",
   icons: {
     icon: "/favicon.ico",
