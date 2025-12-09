@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 VERSION:2.0
 PRODID:-//PayRam//Gaming Event Calendar//EN
 CALSCALE:GREGORIAN
-METHOD:REQUEST
+METHOD:PUBLISH
 BEGIN:VEVENT
 DTSTART:${startDateFormatted}
 DTEND:${endDateFormatted}
@@ -120,89 +120,157 @@ END:VCALENDAR`;
     // Email HTML content
     const htmlContent = `
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .email-container {
-      background-color: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .content {
-      margin: 20px 0;
-    }
-    .event-details {
-      margin: 20px 0;
-      padding-left: 20px;
-    }
-    .event-details li {
-      margin: 10px 0;
-      color: #333;
-    }
-    .event-details strong {
-      color: #000;
-    }
-    .signature {
-      margin-top: 30px;
-      color: #333;
-    }
-    .footer {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #ddd;
-      color: #666;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .footer a {
-      color: #6A0DAD;
-      text-decoration: none;
-    }
-    .footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="email-container">
-    <div class="content">
-      <p>Hi ${firstName},</p>
-      
-      <p>Thank you for your interest in <strong>${eventName}</strong>.</p>
-      
-      <p>Here are event details:</p>
-      
-      <ul class="event-details">
-        <li><strong>Date:</strong> ${dateRange}</li>
-        <li><strong>Location:</strong> ${eventLocation}</li>
-        ${
-          eventWebsite
-            ? `<li><strong>Website & tickets info:</strong> <a href="${eventWebsite}" style="color: #6A0DAD;">${eventWebsite}</a></li>`
-            : ""
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        .main-container {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 64px 32px;
         }
-      </ul>
-      
-      <div class="signature">
-        <p>Regards,<br>
-        <strong>Krishna Teja</strong></p>
-      </div>
+
+        .content-container {
+            box-sizing: border-box;
+            max-width: 610px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .body-content {
+            box-sizing: border-box;
+            padding: 24px 32px 56px;
+            width: 100%;
+        }
+
+        .divider {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            margin: 0 0 24px 0;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .main-container {
+                padding: 32px 8px !important;
+            }
+
+            .content-container {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .body-content {
+                padding: 16px 8px 32px !important;
+            }
+
+            .divider {
+                width: 100% !important;
+                margin: 0 0 16px 0 !important;
+            }
+
+            h1 {
+                font-size: 20px !important;
+                line-height: 30px !important;
+            }
+
+            p,
+            .body-text {
+                font-size: 14px !important;
+                line-height: 24px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0; font-family: 'Poppins', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <div class="main-container" style="width: 100%; padding: 64px 32px; background: #F2F6F9;">
+        <div class="content-container"
+            style="max-width: 610px; width: 100%; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);">
+            <table width="100%" cellpadding="0" cellspacing="0"
+                style="background: rgba(0, 0, 0, 0.04); padding: 0 0 12px; border-collapse:collapse;">
+                <tr>
+                    <td colspan="2" style="height:8px; background: #01e46f ;"></td>
+                </tr>
+                <tr style="background-color: #F0FDF6; width: 100%; padding: 20px 32px;">
+                    <td width="20%" style="padding: 20px 32px; width: 20%; min-width: 88px; max-width: 120px;">
+                        <div align="center"
+                            style="width:88px; height:88px; background:white; border-radius:16px; border:1px solid rgba(0,0,0,0.24); text-align:center;">
+                            <span
+                                style="display:inline-block; vertical-align:middle; font-size:40px; font-weight:700; line-height:88px; height:88px; width:88px;"><img
+                                    src="https://cdn.prod.website-files.com/666d5edad629fd8ec028a7b3/68bc2e8d1628e46944864857_payram_logoIconVividGreen.png"
+                                    alt="PayRam Logo"
+                                    style="max-width: 100%; max-height: 100%; border-radius: 16px;"></span>
+                        </div>
+                    </td>
+                    <td width="80%"
+                        style="font-size:32px; font-weight:700; line-height:38.40px; text-align:left; vertical-align:middle; padding:20px 32px 20px 0; width: 80%;">
+                        Payram </td>
+                </tr>
+            </table>
+
+            <!-- Body Content -->
+            <div class="body-content" style="padding: 24px 32px 56px">
+                <h1 style="font-size: 24px; font-weight: 900; font-style: italic; line-height: 38px; margin: 0 0 24px;">
+                    ${eventName}
+                </h1>
+
+                <hr class="divider" style="width: 100%; height: 1px; background: rgba(0, 0, 0, 0.16); border: none; margin: 0 0 24px;">
+
+                <p class="body-text" style="font-size: 16px; line-height: 26px; margin: 0 0 24px">
+                    Hi ${firstName},
+                </p>
+
+                <p style="font-size: 16px; line-height: 26px; margin: 0 0 24px">
+                    Thank you for your interest in <strong>${eventName}</strong>.
+                </p>
+
+                <p style="font-size: 16px; line-height: 26px; margin: 0 0 16px">
+                    Here are event details:
+                </p>
+
+                <ul style="font-size: 16px; line-height: 26px; margin: 0 0 24px; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;"><strong>Date:</strong> ${dateRange}</li>
+                    <li style="margin-bottom: 8px;"><strong>Location:</strong> ${eventLocation}</li>
+                    ${
+                      eventWebsite
+                        ? `<li style="margin-bottom: 8px;"><strong>Website & tickets info:</strong> <a href="${eventWebsite}" target="_blank" style="color: #01e46f; text-decoration: none;">${eventWebsite}</a></li>`
+                        : ""
+                    }
+                </ul>
+
+                <p style="font-size: 16px; line-height: 26px; margin: 0 0 8px">
+                    Regards,<br>
+                    <strong>Krishna Teja</strong>
+                </p>
+
+                <p style="font-size: 14px; line-height: 22px; color: rgba(0, 0, 0, 0.6); margin: 32px 0 0;">
+                    This email is sent via the <strong>iGaming Events Calendar</strong>, supported by <strong>PayRam</strong>, a self-hosted stablecoin payment gateway for borderless onchain payments. Learn more at <a href="https://payram.com" target="_blank" style="color: #01e46f; text-decoration: none;">https://payram.com</a>.
+                </p>
+            </div>
+
+            <div>
+                <hr class="divider" style="width: 100%; height: 1px; background: rgba(0, 0, 0, 0.16); border: none; margin: 0 0 24px 0;">
+                <div style="text-align: center; margin-bottom: 24px; padding: 0 32px;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 7px; margin-bottom: 12px;">
+                        <span style="font-size: 14px; line-height: 19.60px; display: table;">
+                            <span style="display: table-cell;">Powered By</span>
+                            <a href="https://payram.com/?utm_source=merchant&utm_medium=website&utm_campaign=txemail"
+                                target="_blank" style="display: table-cell; text-decoration: none;">
+                                <h2 style="margin: 0 0 0 8px; font-style: italic; font-size: 14px;"> Payram </h2>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+                <div style="width: 100%; height: 6px; background: #01E46F;"></div>
+            </div>
+        </div>
     </div>
-    
-    <div class="footer">
-      <p>This email is sent via the <strong>iGaming Events Calendar</strong>, supported by <strong>PayRam</strong>, a self-hosted stablecoin payment gateway for borderless onchain payments. Learn more at <a href="https://payram.com" target="_blank">https://payram.com</a>.</p>
-    </div>
-  </div>
 </body>
+
 </html>
     `;
 
@@ -217,7 +285,7 @@ END:VCALENDAR`;
           {
             filename: "event.ics",
             content: icsContent,
-            contentType: "text/calendar; charset=utf-8; method=REQUEST",
+            contentType: "text/calendar; charset=utf-8; method=PUBLISH",
           },
         ],
       }),
